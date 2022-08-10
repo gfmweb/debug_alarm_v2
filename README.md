@@ -79,6 +79,9 @@ str 17  defined('TELEGRAM') || define('TELEGRAM', '5368469368:AAFJl8klvgmm66JDfe
 
 3. Смена пароля Администратора
 
+4. CRUD операции с Админами 
+
+
 ## Интерфейс пользователя (WEB)
 
 

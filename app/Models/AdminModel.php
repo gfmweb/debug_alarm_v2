@@ -24,7 +24,7 @@ class AdminModel extends Model
     protected $deletedField  = 'deleted_at';
 
     // Validation
-    protected $validationRules      = [];
+    protected $validationRules      = []; //todo validate unique LOGIN
     protected $validationMessages   = [];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
@@ -39,6 +39,8 @@ class AdminModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+	
+	
 	
 	/**
 	 * CRUD OPERATION BLOCK READ
@@ -78,7 +80,7 @@ class AdminModel extends Model
 				'users.user_telegram_id',
 			]
 		)->join('users','users.user_id = admins.admin_user_id','LEFT')
-		->whereNotIn('admin_id',$currentAdminID)
+		->whereNotIn('admin_id',[$currentAdminID])
 		->find();
 	}
 	

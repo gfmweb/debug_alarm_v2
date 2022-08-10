@@ -56,7 +56,6 @@ class AdminModel extends Model
 				'admin_login',
 				'admin_password',
 				'users.user_name',
-				'users.user_login',
 				'users.user_id',
 				'users.user_telegram_id'
 			])
@@ -75,7 +74,6 @@ class AdminModel extends Model
 			[   'admins.admin_id',
 				'admins.admin_login',
 				'users.user_id',
-				'users.user_login',
 				'users.user_name',
 				'users.user_telegram_id',
 			]

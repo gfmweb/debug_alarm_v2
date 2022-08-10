@@ -1,9 +1,9 @@
 # DEBUG_ALARM_v2_BOT
 
-## PHP v 7.4 && Vue.js v2 + axios + Bootstrap 5
-
+## PHP v 7.4  
+## Vue.js  + axios 
+## Bootstrap 5
 ## Redis
-
 ## MySQL
 
 

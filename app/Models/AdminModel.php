@@ -93,9 +93,9 @@ class AdminModel extends Model
 	 */
 	public function createAdmin(int $userID,  string $adminLogin):int
 	{
-		$temporalyPassword = rand(11111,99999);
-		$this->insert(['admin_user_id'=>$userID, 'admin_login'=>$adminLogin,'admin_password'=>$temporalyPassword]);
-		return $temporalyPassword;
+		$temporallyPassword = rand(11111,99999);
+		$this->insert(['admin_user_id'=>$userID, 'admin_login'=>$adminLogin,'admin_password'=>password_hash($temporallyPassword,PASSWORD_DEFAULT)]);
+		return $temporallyPassword;
 	}
 	
 	/**
@@ -129,9 +129,9 @@ class AdminModel extends Model
 	 */
 	public function dropPassword(int $adminID):int
 	{
-		$temporalyPassword = rand(11111,99999);
-		$this->update($adminID,['admin_password'=>$temporalyPassword]);
-		return $temporalyPassword;
+		$temporallyPassword = rand(11111,99999);
+		$this->update($adminID,['admin_password'=>password_hash($temporallyPassword,PASSWORD_DEFAULT)]);
+		return $temporallyPassword;
 	}
 	
 	/**

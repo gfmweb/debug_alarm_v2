@@ -113,7 +113,7 @@ class ProjectModel extends Model
 	 */
 	public function editProjectPermissions (int $projectID,array $permissions):bool
 	{
-		return $this->update($projectID,['project_permissions'=>json_encode($permissions)]);
+		return $this->update($projectID,['project_permissions'=>json_encode($permissions,256)]);
 	}
 	
 	/**

@@ -24,7 +24,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $baseURL = 'http://http://debug.gfmweb.ru/';
+    public $baseURL = 'http://debug.gfmweb.ru/';
 
     /**
      * --------------------------------------------------------------------------

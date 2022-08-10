@@ -35,7 +35,7 @@ str 41-46 DB
 
 ### Config/App.php
 
-str 27  public $baseURL = 'http://http://debug.gfmweb.ru/';
+str 27  public $baseURL = 'http://debug.gfmweb.ru/';
 
 str 40  public $indexPage = '';
 

@@ -46,8 +46,12 @@ $routes->get('/test_telega','Test::telega');
 $routes->get('/admin','ADMIN\Admin::index');
 
 
-$routes->post('/login/getLoginForm','Login::requestLoginForm');
+
 $routes->get('/login','Login::index');
+$routes->post('/login/getLoginForm','Login::requestLoginForm');
+$routes->post('/login/admin','Login::adminLogPas');
+$routes->post('/login/user','Login::userLogPas');
+$routes->post('/login/check','Login::checkCode');
 /*
  * --------------------------------------------------------------------
  * Additional Routing

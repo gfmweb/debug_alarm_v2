@@ -30,7 +30,7 @@ class TelegramHooks extends BaseController
 			   $Users = model(UserModel::class);
 			   $pretendent = $Users->find(1);
 			   if(is_null($pretendent['user_telegram_id'])) { // Проверяем что у пользователя 1 еще нет телеграмID
-				   $Users->completeRegisterUser(1, (int)$sender);
+				   $Users->update(1, ['user_telegram_id'=>(int)$sender]);
 				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация почти завершена'.PHP_EOL.'Зайдите в админку</b>',false);
 			   }
 		   }
@@ -39,7 +39,7 @@ class TelegramHooks extends BaseController
 			   $Users = model(UserModel::class);
 			   $pretendent = $Users->find((int)$user_array[1]);
 			   if(is_null($pretendent['user_telegram_id'])) { // Проверяем что у пользователя еще нет телеграмID
-				   $Users->completeRegisterUser((int)$user_array[1], (int)$sender);
+				   $Users->update((int)$user_array[1], ['user_telegram_id'=>(int)$sender]);
 				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация завершена'.PHP_EOL.'Зайдите в лк на сайте</b>',false);
 			   }
 		   }

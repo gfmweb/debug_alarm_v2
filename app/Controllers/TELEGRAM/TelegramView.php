@@ -8,6 +8,6 @@ class TelegramView extends BaseController
 {
     public function index()
     {
-        //
+       return 'WEB_APP';
     }
 }

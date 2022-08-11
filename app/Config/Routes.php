@@ -33,14 +33,21 @@ $routes->set404Override();
  * --------------------------------------------------------------------
  */
 $routes->post('/hook','TELEGRAM\TelegramHooks::index'); //Роут телеграм хуков
-$routes->get('/hook','TELEGRAM\TelegramHooks::index');
+
+$routes->get('/telegram_app','TELEGRAM\TelegramView::index'); // Роут телеграм приложения
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
+
 $routes->get('/test','Test::index');
 $routes->get('/test_telega','Test::telega');
+
 $routes->get('/admin','ADMIN\Admin::index');
+
+
+$routes->post('/login/getLoginForm','Login::requestLoginForm');
+$routes->get('/login','Login::index');
 /*
  * --------------------------------------------------------------------
  * Additional Routing

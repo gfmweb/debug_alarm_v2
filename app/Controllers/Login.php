@@ -57,7 +57,8 @@ class Login extends BaseController
 		if(is_null($admin['user_telegram_id'])){
 			$this->session->set('Login',true);
 			$this->session->set('admin',$admin);
-			//todo redirect to привязка первого пользователя как админа
+			return $this->respond(['errors'=>['Deployment mode'],'data'=>'/CreateAdmin'],200);
+			
 		}
 		else{
 			$Redis = Redis::getInstance();
@@ -108,5 +109,20 @@ class Login extends BaseController
 		}
 		TelegramAPI::deleteMessage($telegram_id,$verify['message_id']);
 		return ($verify['target']=='admin')?$this->respond(['errors'=>null,'data'=>'/admin']):$this->respond(['errors'=>null,'data'=>'/user']);
+	}
+	
+	public function generateRegisterLink()
+	{
+		//todo генерация дип линка для создания клиентских подключений
+	}
+	
+	/**
+	 * @return \CodeIgniter\HTTP\RedirectResponse
+	 * Выход из сервиса
+	 */
+	public function logOut()
+	{
+		$this->session->destroy();
+		return  redirect('/login');
 	}
 }

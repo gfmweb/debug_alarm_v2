@@ -101,7 +101,13 @@
 						}
 					}
 					else{
-						self.formErrors = res.data.errors[0]
+						if(res.data.errors[0]=='Deployment mode')
+						{
+							window.location.replace(res.data.data);
+						}
+						else {
+							self.formErrors = res.data.errors[0]
+						}
 					}
 				})
 				

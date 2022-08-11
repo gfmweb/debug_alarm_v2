@@ -50,7 +50,7 @@ class AdminModel extends Model
 	 * @param string $login Логин
 	 * @return array Возвращает сущность в виде массива используется при авторизации доступа к админке
 	 */
-	public function getAdminByLogin(string $login):array
+	public function getAdminByLogin(string $login)//:array
 	{
 		return $this->select(
 			[
@@ -61,7 +61,7 @@ class AdminModel extends Model
 				'users.user_id',
 				'users.user_telegram_id'
 			])
-			->join('users','users.user_id = admins.admin_user_id')
+			->join('users','users.user_id = admins.admin_user_id','LEFT')
 			->where('admin_login',$login)
 			->first();
 	}

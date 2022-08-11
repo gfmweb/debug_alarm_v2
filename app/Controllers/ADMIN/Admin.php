@@ -8,6 +8,7 @@ class Admin extends BaseController
 {
     public function index()
     {
-        //
+       echo '<pre>'; var_dump($this->session); echo '</pre>';
+	   $this->session->destroy();
     }
 }

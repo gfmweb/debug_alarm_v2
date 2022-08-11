@@ -15,7 +15,7 @@
  */
 defined('APP_NAMESPACE') || define('APP_NAMESPACE', 'App');
 defined('TELEGRAM') || define('TELEGRAM', '5368469368:AAFJl8klvgmm66JDfe6VdWS_IZR1ZLEXsvM');
-
+defined('BOT_NAME') || define('BOT_NAME', 'Debug_v2_alarm_bot');
 /*
  | --------------------------------------------------------------------------
  | Composer Path

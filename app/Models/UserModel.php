@@ -24,7 +24,7 @@ class UserModel extends Model
     protected $deletedField  = 'deleted_at';
 
     // Validation
-    protected $validationRules      = []; //todo validate unique LOGIN
+    protected $validationRules      = ['user_login'=>'is_unique'];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;

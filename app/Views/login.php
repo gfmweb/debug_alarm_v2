@@ -61,7 +61,7 @@
 		el:'#login',
 		data:{
 			activeModeIndex:1, // Активная вкладка по умолчанию
-			logMode:[{'name':'Админка','mode':'admin'},{'name':'Логи','mode':'logs'}], //Виды вкладок
+			logMode:null, //Виды вкладок
 			formOperationIndex:0, // Шаг начала работы с операциями формы
 			formLoginData:null, // Массив полей и прочие свойства формы
 			formOperations:null, // Возможные действия формы
@@ -75,9 +75,17 @@
 				this.requestLoginFields()
 			},
 			requestLoginFields(){ //Запрашивает поля и действия для формы
-				const FormData = {'mode':this.logMode[this.activeModeIndex].mode}
+				if(this.logMode == null){
+					const FormData = {'mode':'logs'}
+				}
+				else {
+					const FormData = {'mode': this.logMode[this.activeModeIndex].mode}
+				}
 				const urI = '/login/getLoginForm'
-				axios.post(urI,FormData).then(res=>{this.formLoginData = res.data})
+				axios.post(urI,FormData).then(res=>{
+					this.formLoginData = res.data.forms
+					this.logMode = res.data.login_variable
+				})
 			},
 			processForm(){
 				const urI = this.formLoginData.action[this.formOperationIndex]

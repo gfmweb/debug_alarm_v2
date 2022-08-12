@@ -39,7 +39,14 @@ class Login extends BaseController
 				]
 			]
 		];
-		return $this->respond($form,200);
+		return $this->respond(
+			[
+				'forms'=>$form,
+				'login_variable'=>[
+					['name'=>'Админка','mode'=>'admin'],
+					['name'=>'Логи','mode'=>'logs']
+				]
+			],200);
     }
 	
 	/**
@@ -111,9 +118,14 @@ class Login extends BaseController
 		return ($verify['target']=='admin')?$this->respond(['errors'=>null,'data'=>'/admin']):$this->respond(['errors'=>null,'data'=>'/user']);
 	}
 	
-	public function generateRegisterLink()
+	public function generateRegisterLinkForUser()
 	{
 		//todo генерация дип линка для создания клиентских подключений
+	}
+	
+	public function FirstAdminCreateLink()
+	{
+		//todo генерация дип линка для создания первого админа
 	}
 	
 	/**

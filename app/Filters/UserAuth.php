@@ -25,7 +25,14 @@ class UserAuth implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        //
+	    $session = \Config\Services::session();
+	    if(!$session->has('user')){
+		    $response = \Config\Services::response();
+		    $response->setStatusCode(401);
+		    $response->setHeader("WWW-Authenticate", "Login Password Verify Code");
+		    $response->setBody("{\"error\": \"unauthorized access. Access Denied\"}");
+		    return $response;
+	    }
     }
 
     /**

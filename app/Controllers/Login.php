@@ -5,7 +5,9 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Controllers\TELEGRAM\TelegramAPI;
 use App\Models\AdminModel;
+use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
+
 
 class Login extends BaseController
 {
@@ -102,6 +104,7 @@ class Login extends BaseController
 	 */
 	public function checkCode()
 	{
+		$Users = model(UserModel::class);
 		$telegram_id = $this->request->getVar('telegram');
 		$code = $this->request->getVar('code');
 		$Redis = Redis::getInstance();
@@ -115,17 +118,43 @@ class Login extends BaseController
 			return $this->respond(['errors'=>['Код подтверждения введен неверно '],'data'=>null],200);
 		}
 		TelegramAPI::deleteMessage($telegram_id,$verify['message_id']);
+		$this->session->set('Login',true);
+		if($verify['target']=='admin'){
+			$this->session->set('admin',$Users->getUserByTelegram((int)$telegram_id,true));
+		}
+		else{
+			$this->session->set('user',$Users->getUserByTelegram((int)$telegram_id,false));
+		}
 		return ($verify['target']=='admin')?$this->respond(['errors'=>null,'data'=>'/admin']):$this->respond(['errors'=>null,'data'=>'/user']);
 	}
 	
-	public function generateRegisterLinkForUser()
+	/**
+	 * @param int $userID ID только-что соднанного пользователя
+	 * @return \CodeIgniter\HTTP\Response ссылка на начало общения с роботом
+	 */
+	public function generateRegisterLinkForUser(int $userID)
 	{
-		//todo генерация дип линка для создания клиентских подключений
+		$link = 'https://t.me/'.BOT_NAME.'?';
+		$createUser = 'start='.base64_encode('create_user/id=2');
+		return $this->respond('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$userID),200);
+		
 	}
 	
-	public function FirstAdminCreateLink()
+	
+	/**
+	 * @return \CodeIgniter\HTTP\RedirectResponse|void Редирект либо на подключение первого администратора либо на страницу входа
+	 */
+	public function FirstAdminCreate()
 	{
-		//todo генерация дип линка для создания первого админа
+		$Users = model(UserModel::class);
+		$user = $Users->first();
+		if(is_null($user['user_telegram_id'])){
+			return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_admin'));
+		}
+		else
+		{
+			return redirect()->to('/login');
+		}
 	}
 	
 	/**
@@ -135,6 +164,26 @@ class Login extends BaseController
 	public function logOut()
 	{
 		$this->session->destroy();
-		return  redirect('/login');
+		return  redirect()->to('/login');
+	}
+	
+	
+	/**
+	 * @return \CodeIgniter\HTTP\RedirectResponse|string Определяет, нужно ли регистрировать пользователя и перенаправляет его в случае успеха
+	 */
+	public function RegisterNewUser()
+	{
+		$income = $this->request->getUri()->getSegments();
+		if(!$income[1]){
+			return redirect()->to('/login');
+		}
+		$Redis = Redis::getInstance();
+		if(!$Redis->exists($income[1])){
+			return view('errors/fail_to_register');
+		}
+		$data = json_decode($Redis->get($income[1]),true);
+		$Redis->del($income[1]);
+		return redirect()->to($this->generateRegisterLinkForUser($data['user_id']));
+		
 	}
 }

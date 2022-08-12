@@ -39,19 +39,25 @@ $routes->get('/telegram_app','TELEGRAM\TelegramView::index'); // Роут тел
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
-
 $routes->get('/test','Test::index');
 $routes->get('/test_telega','Test::telega');
-
 $routes->get('/admin','ADMIN\Admin::index');
 
 
+$routes->get('/register/(:any)','Login::RegisterNewUser'); // Редирект на бота недопользователя
 
 $routes->get('/login','Login::index');
+$routes->get('/CreateAdmin','Login::FirstAdminCreate');
 $routes->post('/login/getLoginForm','Login::requestLoginForm');
 $routes->post('/login/admin','Login::adminLogPas');
 $routes->post('/login/user','Login::userLogPas');
 $routes->post('/login/check','Login::checkCode');
+$routes->get('/logout','Login::logOut');
+
+$routes->post('/admin/init','ADMIN\Admin::init',['filter'=>'AdminAuth']);
+
+
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

@@ -13,118 +13,53 @@
 </head>
 <body>
 	<div class="container" id="login">
-		<div class="container mt-4 mb-4">
-			<div class="card">
-				<div class="card-body">
-					<div class="container">
-						<div class="row justify-content-between">
-				<div class="col-lg-4" v-for="(item, index) in logMode">
-					<div class="row">
-						<button v-if="index==activeModeIndex" class="btn btn-info" v-text="item.name"></button>
-						<button v-else class="btn btn-outline-info" v-text="item.name" v-on:click="setActiveMode(index)"></button>
-					</div>
-				</div>
-			</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="container mt-4">
-			<template v-if="formLoginData!==null">
+		<div class="row justify-content-center">
+			<div class="col-lg-6">
+				<div class="container mt-4 mb-4">
 				<div class="card">
-					<div class="card-header"><h3 class="text-center text-dark" v-text="formLoginData.form_header"></h3></div>
 					<div class="card-body">
-						<template v-if="formErrors!==null">
-							<p class="text-center text-danger" v-text="formErrors"></p>
-						</template>
-						<form id="form" :action="formLoginData.action[formOperationIndex]" :method="formLoginData.method" v-on:submit.prevent="processForm">
-							<div class="container mt-2 mb-2" v-for="(field, index) in formLoginData.form_fields[formOperationIndex]">
-								<label :for="'field_'+index" v-text="field.label"></label>
-								<input :id="'field_'+index" :type="field.type" :name="field.name" class="form-control" required/>
-							</div>
-							<hr/>
-							<div class="row justify-content-center">
-								<div class="col-sm-6 col-lg-4">
-									<div class="row">
-										<button class="btn  btn-success" type="submit" v-text="formLoginData.submit_btn_txt"></button>
+						<div class="container">
+							<div class="row justify-content-between">
+					<div class="col-lg-4" v-for="(item, index) in logMode">
+						<div class="row">
+							<button v-if="index==activeModeIndex" class="btn btn-info" v-text="item.name"></button>
+							<button v-else class="btn btn-outline-info" v-text="item.name" v-on:click="setActiveMode(index)"></button>
+						</div>
+					</div>
+				</div>
+						</div>
+					</div>
+				</div>
+			</div>
+				<div class="container mt-4">
+				<template v-if="formLoginData!==null">
+					<div class="card">
+						<div class="card-header"><h3 class="text-center text-dark" v-text="formLoginData.form_header"></h3></div>
+						<div class="card-body">
+							<template v-if="formErrors!==null">
+								<p class="text-center text-danger" v-text="formErrors"></p>
+							</template>
+							<form id="form" :action="formLoginData.action[formOperationIndex]" :method="formLoginData.method" v-on:submit.prevent="processForm">
+								<div class="container mt-2 mb-2" v-for="(field, index) in formLoginData.form_fields[formOperationIndex]">
+									<label :for="'field_'+index" v-text="field.label"></label>
+									<input :id="'field_'+index" :type="field.type" :name="field.name" class="form-control" required/>
+								</div>
+								<hr/>
+								<div class="row justify-content-center">
+									<div class="col-sm-6 col-lg-4">
+										<div class="row">
+											<button class="btn  btn-success" type="submit" v-text="formLoginData.submit_btn_txt"></button>
+										</div>
 									</div>
 								</div>
-							</div>
-						</form>
+							</form>
+						</div>
 					</div>
-				</div>
-			</template>
+				</template>
+			</div>
+			</div>
 		</div>
 	</div>
-<script>
-	const App = new Vue({
-		el:'#login',
-		data:{
-			activeModeIndex:1, // Активная вкладка по умолчанию
-			logMode:null, //Виды вкладок
-			formOperationIndex:0, // Шаг начала работы с операциями формы
-			formLoginData:null, // Массив полей и прочие свойства формы
-			formOperations:null, // Возможные действия формы
-			formErrors:null, // Login errors
-			TelegramUserID:null
-		},
-		methods:{
-			setActiveMode(index) //Меняет активность форм входа
-			{
-				this.activeModeIndex = index
-				this.requestLoginFields()
-			},
-			requestLoginFields(){ //Запрашивает поля и действия для формы
-				if(this.logMode == null){
-					const FormData = {'mode':'logs'}
-				}
-				else {
-					const FormData = {'mode': this.logMode[this.activeModeIndex].mode}
-				}
-				const urI = '/login/getLoginForm'
-				axios.post(urI,FormData).then(res=>{
-					this.formLoginData = res.data.forms
-					this.logMode = res.data.login_variable
-				})
-			},
-			processForm(){
-				const urI = this.formLoginData.action[this.formOperationIndex]
-				var forma = document.forms[0]
-				const fieldsCount =  forma.elements.length-1
-				const FormDat = {}
-				const self = this
-				for(let i = 0; i < fieldsCount; i++) {
-					FormDat[forma.elements[i].name] = forma.elements[i].value
-					FormDat['telegram'] = self.TelegramUserID
-				}
-				axios.post(urI,FormDat).then(res=>{
-					if(res.data.errors == null){
-						if(self.formOperationIndex+1 < self.formLoginData.form_fields.length){
-							self.formOperationIndex++
-							self.TelegramUserID = res.data.data.user_telegram_id
-							self.formErrors = null
-						}
-						else{
-							window.location.replace(res.data.data);
-						}
-					}
-					else{
-						if(res.data.errors[0]=='Deployment mode')
-						{
-							window.location.replace(res.data.data);
-						}
-						else {
-							self.formErrors = res.data.errors[0]
-						}
-					}
-				})
-				
-			}
-		},
-		mounted:function(){
-			this.requestLoginFields()
-		}
-	});
-</script>
+<script src="/front_app/login.js"></script>
 </body>
 </html>

@@ -62,6 +62,16 @@ class UserModel extends Model
 		return $this->select(['user_id','user_telegram_id','user_name'])->whereNotIn('user_id',[$userID])->find();
 	}
 	
+	/**
+	 * @param int $telegram ID telegram пользователя
+	 * @param bool $is_admin Признак того что о администратор
+	 * @return array Вернет сущность пользователя в виде массива
+	 */
+	public function getUserByTelegram(int $telegram, bool $is_admin = false):array
+	{
+		return ($is_admin) ? $this->select(['users.user_id','users.user_name','users.user_login','admins.admin_id','admins.admin_login'])->join('admins','admins.admin_user_id = users.user_id','LEFT')->where('users.user_telegram_id',$telegram)->first():$this->select(['user_id','user_name','user_login'])->where('user_telegram_id',$telegram)->first();
+	}
+	
 	
 	/**
 	 * CRUD BLOCK CREATE

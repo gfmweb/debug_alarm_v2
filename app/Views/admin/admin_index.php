@@ -29,6 +29,9 @@
 					</div>
 				</div>
 			</div>
+			<template v-if="adminActiveAction!==null">
+				<!-- Отображение глобальных CRUD || Logical каточек (с таблицами или формочками) -->
+			</template>
 		</div>
 	</div>
 <script>
@@ -49,7 +52,7 @@
 				this.makeAction(index)
 			},
 			getMainMenu(){
-				axios.post('/admin/init').then(res=>{
+				axios.get('/admin/init').then(res=>{
 					this.menu_text = res.data.menu_text
 					this.adminActions = res.data.adminActions
 				})

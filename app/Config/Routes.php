@@ -54,8 +54,11 @@ $routes->post('/login/user','Login::userLogPas');
 $routes->post('/login/check','Login::checkCode');
 $routes->get('/logout','Login::logOut');
 
-$routes->post('/admin/init','ADMIN\Admin::init',['filter'=>'AdminAuth']);
-
+$routes->get('/admin/init','ADMIN\Admin::init',['filter'=>'AdminAuth']);
+$routes->get('/admin/projects','ADMIN\Admin::getProjects',['filter'=>'AdminAuth']);
+$routes->get('/admin/users','ADMIN\Admin::getUsers',['filter'=>'AdminAuth']);
+$routes->get('/admin/admins','ADMIN\Admin::getAdmins',['filter'=>'AdminAuth']);
+$routes->get('/admin/settings','ADMIN\Admin::getSettings',['filter'=>'AdminAuth']);
 
 
 /*

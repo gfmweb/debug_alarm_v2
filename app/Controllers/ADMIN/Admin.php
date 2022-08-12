@@ -21,11 +21,32 @@ class Admin extends BaseController
 		$menu_text = 'Основные действия';
 		$adminActions =
 		[
-			['name'=>'Проекты',             'urI'=>null,       'method'=>'POST',      'after'=>['action'=>'show_content']],
-			['name'=>'Пользователи',        'urI'=>null,       'method'=>'POST',      'after'=>['action'=>'show_content']],
-			['name'=>'Управление сервисом', 'urI'=>null,       'method'=>'POST',      'after'=>['action'=>'show_content']],
-			['name'=>'Выход',               'urI'=>'/logout',  'method'=>'GET',       'after'=>['action'=>'/login']]
+			['name'=>'Проекты',             'urI'=>'/admin/projects',       'method'=>'POST',      'after'=>['action'=>'show_content']],
+			['name'=>'Пользователи',        'urI'=>'/admin/users',          'method'=>'POST',      'after'=>['action'=>'show_content']],
+			['name'=>'Администраторы',      'urI'=>'/admin/admins',         'method'=>'POST',      'after'=>['action'=>'show_content']],
+			['name'=>'Управление сервисом', 'urI'=>'/admin/settings',       'method'=>'POST',      'after'=>['action'=>'show_content']],
+			['name'=>'Выход',               'urI'=>'/logout',               'method'=>'GET',       'after'=>['action'=>'/login']]
 		];
 		return $this->respond(['menu_text'=>$menu_text,'adminActions'=>$adminActions],200);
+	}
+	
+	public function getProjects()
+	{
+	
+	}
+	
+	public function getUsers()
+	{
+	
+	}
+	
+	public function getAdmins()
+	{
+	
+	}
+	
+	public function getSettings()
+	{
+	
 	}
 }

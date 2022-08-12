@@ -10,6 +10,8 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
 </head>
 <body>
 	<div class="container" id="admin">
@@ -29,7 +31,35 @@
 					</div>
 				</div>
 			</div>
-			<template v-if="adminActiveAction!==null">
+			<template v-if="activeDataHeaderText!==null">
+				<div class="row justify-content-center">
+					<h3 class="h3 text-center" v-text="activeDataHeaderText"></h3>
+				</div>
+				<template v-if="activeDataContentView=='CRUD'">
+					<table class="table table-bordered table-hover table-success">
+						<thead>
+							<tr class="text-center">
+								<th>№</th>
+								<th v-for="header in activeDataContentBlock.greeds" v-text="header"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(row, index) in activeDataContentBlock.data">
+								<td v-text="index+1" role="button" class="text-center"></td>
+								<td v-for="(element) in row" v-if="element.hidden==false" v-text="element.value" role="button"></td>
+								<td>
+									<div class="row justify-content-between">
+										<div class="col-auto" v-for="(act) in activeDataRequests.inline">
+											<button :class="act.btn_class" :title="act.label" v-html="act.icon" v-on:click="makeInlineAction(act.urI, act.method,act.dependencies,activeDataContentBlock.data[index])"></button>
+										</div>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</template>
+				<template v-if="activeDataContentView == 'LOGICAL'">
+				</template>
 				<!-- Отображение глобальных CRUD || Logical каточек (с таблицами или формочками) -->
 			</template>
 		</div>
@@ -38,13 +68,13 @@
 	const AdminApp = new Vue({
 		el:'#admin',
 		data:{
-			menu_text:null,
-			adminActiveAction:null,
-			adminActiveActionIndex:null,
-			adminActions:null,
-			activeDataHeaderText:null,
-			activeDataContentBlock:null,
-			activeDataRequests:null
+			menu_text:null, // Текст в меню
+			adminActiveActionIndex:null, // INDEX Текушей активной вкладки основного меню
+			adminActions:null, // Массив доступных экшенов Админа
+			activeDataHeaderText:null, // Заголовок активного содержимого
+			activeDataContentBlock:null, // Контент активного содержимого
+			activeDataContentView:null, // Как показывать активное содержимое
+			activeDataRequests:null, // Возможные запросы активного содержимого
 		},
 		methods:{
 			setActiveAction(index){
@@ -57,6 +87,30 @@
 					this.adminActions = res.data.adminActions
 				})
 			},
+			makeInlineAction(urI, method, dependencies, object)
+			{
+				const Form = new FormData()
+				dependencies.forEach(function (dep){
+					const variable = dep
+					object.forEach(function(key){
+						if(key.name ==  variable){
+							console.log ('variable '+variable+' has value '+key.value)
+							Form.append(variable,key.value)
+						}
+					})
+				})
+				if(method == 'POST') {
+					axios.post(urI, Form).then(res => {
+						console.log('request is done WITH POST request')
+					})
+				}
+				if(method=='GET'){
+					axios.get(urI, Form).then(res => {
+						console.log('request is done WITH GET request')
+					})
+				}
+				
+			},
 			makeAction(index){
 				const self = this
 				if(self.adminActions[index].method == 'GET')
@@ -64,7 +118,10 @@
 					axios.get(self.adminActions[index].urI).then(
 							res=>{
 								if(self.adminActions[index].after.action == 'show_content') {
-									console.log('must_show_content')
+									self.activeDataHeaderText = res.data.header
+									self.activeDataContentBlock = res.data.content
+									self.activeDataContentView = res.data.activeDataContentView
+									self.activeDataRequests = res.data.activeDataRequests
 								}
 								else{
 									window.location.replace(self.adminActions[index].after.action);
@@ -76,7 +133,8 @@
 					axios.post(self.adminActions[index].urI).then(
 							res=>{
 								if(self.adminActions[index].after.action == 'show_content') {
-									console.log('must_show_content')
+									self.activeDataHeaderText = res.data.header
+									self.activeDataContentBlock = res.data.content
 								}
 								else{
 									window.location.replace(res.data.after.action);

@@ -21,7 +21,7 @@
 						<div class="row justify-content-between">
 							<div class="col-auto" v-for="(item,index) in adminActions">
 								<div class="row mt-5 mb-4">
-									<button v-if="index==adminActiveAcnionIndex" class="btn btn-success" v-text="item.name" disabled></button>
+									<button v-if="index==adminActiveActionIndex" class="btn btn-success" v-text="item.name" disabled></button>
 									<button v-else class="btn btn-outline-success" v-text="item.name" v-on:click="setActiveAction(index)"></button>
 								</div>
 							</div>
@@ -40,7 +40,7 @@
 		data:{
 			menu_text:null,
 			adminActiveAction:null,
-			adminActiveAcnionIndex:null,
+			adminActiveActionIndex:null,
 			adminActions:null,
 			activeDataHeaderText:null,
 			activeDataContentBlock:null,
@@ -48,7 +48,7 @@
 		},
 		methods:{
 			setActiveAction(index){
-				this.adminActiveAcnionIndex = index
+				this.adminActiveActionIndex = index
 				this.makeAction(index)
 			},
 			getMainMenu(){
@@ -89,9 +89,7 @@
 			
 		},
 		mounted:function()
-		{
-			this.getMainMenu()
-		}
+		{this.getMainMenu()}
 	})
 </script>
 </body>

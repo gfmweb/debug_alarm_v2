@@ -32,15 +32,18 @@ class Admin extends BaseController
 	
 	public function getProjects()
 	{
+		$arr = [];
+		$row = [['project_id'=>1],
+			['project_name'=>'test1'],
+			['project_secret'=>'secret_sdlkflskjdlfjlksdjflijelmnvlskeifhownef1'],
+			['project_rules'=>'rules_1'],
+			['project_permissions'=>'permissions_1']
+		];
+		
+		$arr = $this->frontGreedsTransform($row,['project_id','project_rules','project_permissions']);
 		$header = 'Проекты';
-		$data = ['greeds'=>['name','secret','rules','permissions','actions'],
-				'data'=>[
-					[['name'=>'id','hidden'=>true,'value'=>1],['name'=>'name','hidden'=>false,'value'=>'test'],['name'=>'secret','hidden'=>false,'value'=>'secret'],['name'=>'rules','hidden'=>false,'value'=>'rules'],['name'=>'permissions','hidden'=>false,'value'=>'permissions']],
-					[['name'=>'id','hidden'=>true,'value'=>2],['name'=>'name','hidden'=>false,'value'=>'test2'],['name'=>'secret','hidden'=>false,'value'=>'secret2'],['name'=>'rules','hidden'=>false,'value'=>'rules'],['name'=>'permissions','hidden'=>false,'value'=>'permissions2']],
-					[['name'=>'id','hidden'=>true,'value'=>3],['name'=>'name','hidden'=>false,'value'=>'test3'],['name'=>'secret','hidden'=>false,'value'=>'secret3'],['name'=>'rules','hidden'=>false,'value'=>'rules'],['name'=>'permissions','hidden'=>false,'value'=>'permissions3']],
-					[['name'=>'id','hidden'=>true,'value'=>4],['name'=>'name','hidden'=>false,'value'=>'test4'],['name'=>'secret','hidden'=>false,'value'=>'secret4'],['name'=>'rules','hidden'=>false,'value'=>'rules'],['name'=>'permissions','hidden'=>false,'value'=>'permissions4']],
-					//[5,'test5','secret5','rules5','permissions5'],
-				]
+		$data = ['greeds'=>['name','secret','actions'],
+				'data'=>$arr
 		];
 		$activeDataContentView = 'CRUD';
 		$operations = [

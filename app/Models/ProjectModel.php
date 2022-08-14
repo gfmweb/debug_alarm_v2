@@ -81,11 +81,9 @@ class ProjectModel extends Model
 					'projects.project_id',
 					'projects.project_name',
 					'projects.project_secret',
-					'projects.project_rules',
-					'(SELECT users.user_id, users.user_name FROM users WHERE users.user_id IN (projects.project_permissions)) as users'
 				])
-			->where($projectID)
-			->first();
+			
+			->find($projectID);
 	}
 	
 	/**

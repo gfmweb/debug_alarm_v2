@@ -48,7 +48,7 @@ class Admin extends BaseController
 							'urI'=>'/admin/createProject',
 							'name'=>'Создать проект',
 							'id'=>'create_project',
-							'template'=>file_get_contents('./logical_forms/create_project.html')],
+							'template'=>file_get_contents('./logical_forms/admin/create_project.html')],
 					],
 				'inline'=>[
 						
@@ -101,8 +101,17 @@ class Admin extends BaseController
 	
 	public function getProjectByID()
 	{
+		$Projects = model(ProjectModel::class);
 		$id = $this->request->getVar('project_id');
-		return $this->respond([],200);
+		$response['data'] = $Projects->getProject($id);
+		$response['header'] = 'Редактирование проекта';
+		$response['target_id']=['name'=>'project_id','value'=>$id];
+		$response['fields']=[
+			['name'=>'project_name','value'=>$response['data']['project_name'],'type'=>'text','placeholder'=>'Имя проекта'],
+			['name'=>'project_secret','value'=>$response['data']['project_secret'],'type'=>'text','placeholder'=>'Секретный ключ']
+		];
+		$response['form']=['urI'=>'/admin/update_project','method'=>'POST'];
+		return $this->respond($response,200);
 	}
 	
 	public function createProject(){

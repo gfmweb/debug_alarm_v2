@@ -8,7 +8,8 @@
 	<title>Админ панель</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
+	<!--<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>-->
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<link rel="stylesheet"
 	      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
@@ -74,10 +75,9 @@
 						</tbody>
 					</table>
 				</template>
-				
-				<!-- Отображение глобальных CRUD || Logical каточек (с таблицами или формочками) -->
 			</template>
 		</div>
+		<inline_modal :props_data="properties" ></inline_modal>
 	</div>
 	<script>
 		addEventListener("submit", function(event) {
@@ -85,6 +85,51 @@
 			}, true);
 	</script>
 <script>
+	Vue.component('inline_modal', {
+		props: {'props_data': Object},
+		computed:{
+			header(){return this.props_data.header},
+			fields(){return this.props_data.fields},
+			form(){return this.props_data.form},
+			target_id(){return this.props_data.target_id}
+		},
+		methods:{
+			process_inline_form(){
+				console.log('cool')
+				console.log('ready for form collect')
+				var forma = document.forms[1]
+				console.log(forma.elements)
+				
+			}
+		},
+		template: '' +
+				'<div class="modal fade" id="inline_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">'+
+						'<div class="modal-dialog">'+
+							'<div class="modal-content">'+
+								'<div class="modal-header">'+
+									'<h5 class="modal-title" id="exampleModalLabel" v-text="header"></h5>'+
+									'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>'+
+								'</div>'+
+								'<form :action="form.urI" :method="form.method" onsubmit="return false;" >'+
+									'<div class="modal-body">'+
+										'<div class="container mt-3">'+
+												'<input type="hidden" :name="target_id.name" :value="target_id.value"/>'+
+												'<div class="container mt-3" v-for="item in fields">'+
+													'<label v-text="item.placeholder"></label>'+
+													'<input :type="item.type" :name="item.name" :value="item.value" :placeholder="item.placeholder" class="form-control" required/>'+
+												'</div>'+
+										'</div>'+
+									'</div>'+
+									'<div class="modal-footer">'+
+										'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>'+
+										'<button type="button" class="btn btn-primary" v-on:click="process_inline_form">Сохранить</button>'+
+								'</form>'+
+							'</div>'+
+						'</div>'+
+					'</div>'+
+				
+				'</div>'
+	})
 	const AdminApp = new Vue({
 		el:'#admin',
 		data:{
@@ -95,6 +140,12 @@
 			activeDataContentBlock:null, // Контент активного содержимого
 			activeDataContentView:null, // Как показывать активное содержимое
 			activeDataRequests:null, // Возможные запросы активного содержимого
+			properties:{
+				header:'Unknown component',
+				target_id:0,
+				fields:[],
+				form:{urI:'/',method:'POST'}
+			} // Набор свойств и форм для компонента инлайнового модального окна действия
 		},
 		methods:{
 			process_form(urI){
@@ -111,6 +162,9 @@
 						self.makeAction(self.adminActiveActionIndex)
 					})
 			},
+			process_inline_form(){
+			
+			},
 			setActiveAction(index){
 				this.adminActiveActionIndex = index
 				this.makeAction(index)
@@ -123,7 +177,6 @@
 			},
 			makeInlineAction(urI, method, dependencies,  object, confirmation, confirmation_text)
 			{
-				
 				if(confirmation == true){
 					let choice = confirm(confirmation_text)
 					if(!choice){
@@ -135,7 +188,7 @@
 				dependencies.forEach(function (dep){
 					const variable = dep
 					object.forEach(function(key){
-						if(key.name ==  variable){
+						if(key.name == variable){
 							Form.append(variable,key.value)
 						}
 					})
@@ -146,47 +199,48 @@
 					})
 				}
 				if(method=='GET'){
-					console.log('get')
-					axios.get(urI, Form).then(res => {
-						self.makeAction(self.adminActiveActionIndex)
+					axios.post(urI, Form).then(res => {
+						self.properties = res.data
+						var myModal = new bootstrap.Modal(document.getElementById('inline_modal'), {
+							keyboard: false
+						})
+						myModal.toggle();
 					})
 				}
-				
 			},
 			makeAction(index){
 				const self = this
 				if(self.adminActions[index].method == 'GET')
 				{
 					axios.get(self.adminActions[index].urI).then(
-							res=>{
-								if(self.adminActions[index].after.action == 'show_content') {
-									self.activeDataHeaderText = res.data.header
-									self.activeDataContentBlock = res.data.content
-									self.activeDataContentView = res.data.activeDataContentView
-									self.activeDataRequests = res.data.activeDataRequests
-								}
-								else{
-									window.location.replace(self.adminActions[index].after.action);
-								}
+						res=>{
+							if(self.adminActions[index].after.action == 'show_content') {
+								self.activeDataHeaderText = res.data.header
+								self.activeDataContentBlock = res.data.content
+								self.activeDataContentView = res.data.activeDataContentView
+								self.activeDataRequests = res.data.activeDataRequests
 							}
+							else{
+								window.location.replace(self.adminActions[index].after.action);
+							}
+						}
 					)
 				}
 				if(this.adminActions[index].method == 'POST'){
 					axios.post(self.adminActions[index].urI).then(
-							res=>{
-								if(self.adminActions[index].after.action == 'show_content') {
-									self.activeDataHeaderText = res.data.header
-									self.activeDataContentBlock = res.data.content
-								}
-								else{
-									window.location.replace(res.data.after.action);
-								}
+						res=>{
+							if(self.adminActions[index].after.action == 'show_content') {
+								self.activeDataHeaderText = res.data.header
+								self.activeDataContentBlock = res.data.content
 							}
+							else{
+								window.location.replace(res.data.after.action);
+							}
+						}
 					)
 				}
 				
 			}
-			
 		},
 		mounted:function()
 		{this.getMainMenu()}

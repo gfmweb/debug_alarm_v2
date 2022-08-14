@@ -58,10 +58,10 @@ abstract class BaseController extends Controller
 	public function frontGreedsTransform(array $rows, array $escape = []):array
 	{
 		$resulting_array = [];
+		$i=0;
 		foreach ($rows as $key=>$val) // Work with single\multi rows response from BD
 		{
 			foreach ($val as $child_key=>$child_val){
-				$hidden = false;
 				$hidden = false;
 				foreach ($escape as $el) {
 					if(is_array($child_val)){
@@ -74,21 +74,21 @@ abstract class BaseController extends Controller
 					$hidden = $el == $esc_name;
 					if($hidden)break;
 				}
-				if(is_array($child_val)) {
+			/*	if(is_array($child_key)) {
 					$name = array_keys($child_val);
 					$stuctured_row = ['name' => $name[0], 'value' => $child_val[$name[0]], 'hidden' => $hidden];
 					$row_array[] = $stuctured_row;
-					$resulting_array[] = $row_array;
-					$row_array = [];
+					$resulting_array[]=$row_array;
 				}
-				else{
+				else{*/
 					$row_array = ['name' => $child_key, 'value' => $child_val, 'hidden' => $hidden];
-					$resulting_array[0][] = $row_array;
+					$resulting_array[$i][] = $row_array;
 					
-				}
+				//}
 			}
-		
+			$i++;
 		}
+		
 		return $resulting_array;
 	}
 }

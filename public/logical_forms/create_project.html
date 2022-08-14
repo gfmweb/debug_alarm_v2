@@ -1,0 +1,21 @@
+<div class="modal fade" id="create_project" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Создать проект</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form onsubmit="AdminApp.process_form('/admin/createProject'); return false;">
+				<div class="modal-body">
+					<label>Имя проекта</label>
+						<input type="text" class="form-control" name="project_name" required/>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="close_modal" class="btn btn-secondary" data-bs-dismiss="modal">Отмена
+					</button>
+					<button  class="btn btn-primary" type="submit">Создать</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

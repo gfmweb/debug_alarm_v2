@@ -3,6 +3,7 @@
 namespace App\Controllers\ADMIN;
 
 use App\Controllers\BaseController;
+use App\Models\ProjectModel;
 use CodeIgniter\API\ResponseTrait;
 
 class Admin extends BaseController
@@ -32,23 +33,22 @@ class Admin extends BaseController
 	
 	public function getProjects()
 	{
-		$arr = [];
-		$row = [['project_id'=>1],
-			['project_name'=>'test1'],
-			['project_secret'=>'secret_sdlkflskjdlfjlksdjflijelmnvlskeifhownef1'],
-			['project_rules'=>'rules_1'],
-			['project_permissions'=>'permissions_1']
-		];
+		$ProjectModel = model(ProjectModel::class);
+		$row = $ProjectModel->getAll();
 		
-		$arr = $this->frontGreedsTransform($row,['project_id','project_rules','project_permissions']);
+		
 		$header = 'Проекты';
-		$data = ['greeds'=>['name','secret','actions'],
-				'data'=>$arr
+		$data = ['greeds'=>['Имя','Секретный ключ','Действия'],
+				'data'=>$this->frontGreedsTransform($row,['project_id']),
 		];
 		$activeDataContentView = 'CRUD';
 		$operations = [
 				'outline'=>[
-						'create'     =>['urI'=>'/admin/createProject','name'=>'Создать проект','dependencies'=>[]],
+						'create'=>[
+							'urI'=>'/admin/createProject',
+							'name'=>'Создать проект',
+							'id'=>'create_project',
+							'template'=>file_get_contents('./logical_forms/create_project.html')],
 					],
 				'inline'=>[
 						
@@ -58,7 +58,10 @@ class Admin extends BaseController
 							'label'=>'Удалить проект',
 							'icon'=>'<i class="fa-solid fa-trash"></i>',
 							'btn_class'=>'btn btn-sm btn-rounded btn-danger',
-							'dependencies'=>['id']
+							'dependencies'=>['project_id'],
+							'confirmation'=>true,
+							'confirmation_text'=>'Вы действительно хотите удалить'
+							
 						],
 						'editProject'  =>[
 							'urI'=>'/admin/getProjectByID',
@@ -66,7 +69,9 @@ class Admin extends BaseController
 							'label'=>'Редактировать проект',
 							'icon'=>'<i class="fa-solid fa-pen-nib"></i>',
 							'btn_class'=>'btn btn-sm btn-rounded btn-primary',
-							'dependencies'=>['id']
+							'dependencies'=>['project_id'],
+							'confirmation'=>false,
+							'confirmation_text'=>''
 						],
 					]
 		];
@@ -100,9 +105,17 @@ class Admin extends BaseController
 		return $this->respond([],200);
 	}
 	
+	public function createProject(){
+		
+		$Projects = model(ProjectModel::class);
+		$Projects->createProject($this->request->getVar('project_name'));
+	}
+	
 	public function deleteProject()
 	{
+		$Project = model(ProjectModel::class);
 		$id = $this->request->getVar('project_id');
-		return $this->respond([],200);
+		$Project->deleteProject($id);
+		return $this->respond([$id],200);
 	}
 }

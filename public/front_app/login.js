@@ -29,7 +29,8 @@ const App = new Vue({
 				this.logMode = res.data.login_variable
 			})
 		},
-		processForm(){
+		processForm()
+		{
 			const urI = this.formLoginData.action[this.formOperationIndex]
 			var forma = document.forms[0]
 			const fieldsCount =  forma.elements.length-1

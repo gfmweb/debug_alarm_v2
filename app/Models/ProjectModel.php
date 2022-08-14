@@ -14,7 +14,7 @@ class ProjectModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = ['project_name','project_secret','project_rules','project_permissions'];
 
     // Dates
     protected $useTimestamps = false;
@@ -48,7 +48,7 @@ class ProjectModel extends Model
 	private function getSecret():string
 	{
 		$secret = '';
-		$max  = count($this->characters)-1;
+		$max  = strlen($this->characters)-1;
 		for($i = 0; $i < 16; $i++)
 		{
 			$secret.=$this->characters[rand(0,$max)];
@@ -66,7 +66,7 @@ class ProjectModel extends Model
 	 */
 	public function getAll():array
 	{
-		return $this->select(['project_id','project_name'])->find();
+		return $this->select(['project_id','project_name','project_secret'])->find();
 	}
 	
 	/**
@@ -99,7 +99,7 @@ class ProjectModel extends Model
 	public function createProject(string $projectName):int
 	{
 		$secret = $this->getSecret();
-		return $this->insert(['project_name'=>$projectName,'project_secret'=>$secret],true);
+		return $this->insert(['project_name'=>$projectName,'project_secret'=>$secret,'project_permissions'=>'["1"]'],true);
 	}
 	
 	/**

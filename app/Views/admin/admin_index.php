@@ -38,6 +38,16 @@
 				<template v-if="activeDataContentView=='CRUD'">
 					<table class="table table-bordered table-hover table-success">
 						<thead>
+						<tr>
+							<div class="row justify-content-between mb-3">
+								<div class="col-auto" v-for="but in activeDataRequests.outline">
+									<button class="btn btn-success" v-text="but.name" data-bs-toggle="modal" :data-bs-target="'#'+but.id" ></button>
+									<div v-html="but.template">
+									</div>
+								</div>
+								
+							</div>
+						</tr>
 							<tr class="text-center">
 								<th>№</th>
 								<th v-for="header in activeDataContentBlock.greeds" v-text="header"></th>
@@ -50,7 +60,13 @@
 								<td>
 									<div class="row justify-content-between">
 										<div class="col-auto" v-for="(act) in activeDataRequests.inline">
-											<button :class="act.btn_class" :title="act.label" v-html="act.icon" v-on:click="makeInlineAction(act.urI, act.method,act.dependencies,activeDataContentBlock.data[index])"></button>
+											<button :class="act.btn_class" :title="act.label" v-html="act.icon"
+											        v-on:click="makeInlineAction(act.urI,
+											        act.method,
+											        act.dependencies,
+											        activeDataContentBlock.data[index],
+											        act.confirmation,
+											        act.confirmation_text)"></button>
 										</div>
 									</div>
 								</td>
@@ -58,12 +74,16 @@
 						</tbody>
 					</table>
 				</template>
-				<template v-if="activeDataContentView == 'LOGICAL'">
-				</template>
+				
 				<!-- Отображение глобальных CRUD || Logical каточек (с таблицами или формочками) -->
 			</template>
 		</div>
 	</div>
+	<script>
+		addEventListener("submit", function(event) {
+			event.preventDefault();
+			}, true);
+	</script>
 <script>
 	const AdminApp = new Vue({
 		el:'#admin',
@@ -77,6 +97,20 @@
 			activeDataRequests:null, // Возможные запросы активного содержимого
 		},
 		methods:{
+			process_form(urI){
+					var forma = document.forms[0]
+					const fieldsCount =  forma.elements.length-1
+					const FormDat = {}
+					const self = this
+					for(let i = 0; i < fieldsCount; i++) {
+						FormDat[forma.elements[i].name] = forma.elements[i].value
+					}
+					axios.post(urI,FormDat).then(res=>{
+						modalka = document.getElementById('close_modal')
+						modalka.click()
+						self.makeAction(self.adminActiveActionIndex)
+					})
+			},
 			setActiveAction(index){
 				this.adminActiveActionIndex = index
 				this.makeAction(index)
@@ -87,26 +121,34 @@
 					this.adminActions = res.data.adminActions
 				})
 			},
-			makeInlineAction(urI, method, dependencies, object)
+			makeInlineAction(urI, method, dependencies,  object, confirmation, confirmation_text)
 			{
+				
+				if(confirmation == true){
+					let choice = confirm(confirmation_text)
+					if(!choice){
+						return null
+					}
+				}
+				const self = this
 				const Form = new FormData()
 				dependencies.forEach(function (dep){
 					const variable = dep
 					object.forEach(function(key){
 						if(key.name ==  variable){
-							console.log ('variable '+variable+' has value '+key.value)
 							Form.append(variable,key.value)
 						}
 					})
 				})
 				if(method == 'POST') {
 					axios.post(urI, Form).then(res => {
-						console.log('request is done WITH POST request')
+						self.makeAction(self.adminActiveActionIndex)
 					})
 				}
 				if(method=='GET'){
+					console.log('get')
 					axios.get(urI, Form).then(res => {
-						console.log('request is done WITH GET request')
+						self.makeAction(self.adminActiveActionIndex)
 					})
 				}
 				

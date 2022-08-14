@@ -61,7 +61,8 @@ $routes->get('/admin/admins','ADMIN\Admin::getAdmins',['filter'=>'AdminAuth']);
 $routes->get('/admin/settings','ADMIN\Admin::getSettings',['filter'=>'AdminAuth']);
 
 $routes->get('/admin/getProjectByID','ADMIN\Admin::getProjectByID',['filter'=>'AdminAuth']);
-$routes->post('/admin/deleteProject','ADMIN\Admin::getProjectByID',['filter'=>'AdminAuth']);
+$routes->post('/admin/deleteProject','ADMIN\Admin::deleteProject',['filter'=>'AdminAuth']);
+$routes->post('/admin/createProject','ADMIN\Admin::createProject',['filter'=>'AdminAuth']);
 
 /*
  * --------------------------------------------------------------------

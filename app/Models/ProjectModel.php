@@ -14,7 +14,7 @@ class ProjectModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['project_name','project_secret','project_rules','project_permissions'];
+    protected $allowedFields    = ['project_name','project_secret'];
 
     // Dates
     protected $useTimestamps = false;
@@ -97,41 +97,21 @@ class ProjectModel extends Model
 	public function createProject(string $projectName):int
 	{
 		$secret = $this->getSecret();
-		return $this->insert(['project_name'=>$projectName,'project_secret'=>$secret,'project_permissions'=>'["1"]'],true);
+		return ($projectName!=='')? $this->insert(['project_name'=>$projectName,'project_secret'=>$secret],true):0;
 	}
 	
 	/**
 	 * CRUD BLOCK UPDATE
 	 */
-	
-	/**
-	 * @param int $projectID ID проекта
-	 * @param array $permissions Массив разрешений
-	 * @return bool Обновит пользователей получающих уведомления по проекту
-	 */
-	public function editProjectPermissions (int $projectID,array $permissions):bool
-	{
-		return $this->update($projectID,['project_permissions'=>json_encode($permissions,256)]);
-	}
-	
 	/**
 	 * @param int $projectID ID проекта
 	 * @param string $projectName Имя проекта
+	 * @param string $projectSecret Секреный ключ проекта
 	 * @return bool Обновит имя проекта
 	 */
-	public function editProjectName(int $projectID,string $projectName):bool
+	public function editProject(int $projectID,string $projectName, string $projectSecret):bool
 	{
-		return $this->update($projectID,['project_name'=>$projectName]);
-	}
-	
-	/**
-	 * @param int $projectID ID проекта
-	 * @param string $projectRules Код правил обработки входящих / исходящих данных
-	 * @return bool Обновит проектные правила обработки входящих / исходящих данных
-	 */
-	public function editProjectRulles(int $projectID, string $projectRules):bool
-	{
-		return $this->update($projectID,['project_rules'=>$projectRules]);
+		return $this->update($projectID,['project_name'=>$projectName,'project_secret'=>$projectSecret]);
 	}
 	
 	/**

@@ -23,11 +23,6 @@ class Logs extends Migration
 		        'unsigned'          =>  true,
 		        'null'              =>  false,
 	        ],
-	        'log_row_data'=>
-		    [
-		        'type'                 => 'TEXT',
-		        'null'                 =>  false,
-	        ],
 	        'log_structured_data'=>
 	        [
 		        'type'                 => 'JSON',

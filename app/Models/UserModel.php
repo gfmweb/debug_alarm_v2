@@ -24,7 +24,7 @@ class UserModel extends Model
     protected $deletedField  = 'deleted_at';
 
     // Validation
-    protected $validationRules      = ['user_login'=>'is_unique'];
+    protected $validationRules      = [];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
@@ -59,7 +59,7 @@ class UserModel extends Model
 	 */
 	public function getAnotherUsers(int $userID):array
 	{
-		return $this->select(['user_id','user_telegram_id','user_name'])->whereNotIn('user_id',[$userID])->find();
+		return $this->select(['user_id','user_telegram_id','user_name','user_login'])->whereNotIn('user_id',[$userID])->find();
 	}
 	
 	/**
@@ -124,6 +124,18 @@ class UserModel extends Model
 		$temporallyPassword = rand(11111,99999);
 		$this->update($userID,['user_password'=>password_hash($temporallyPassword,PASSWORD_DEFAULT)]);
 		return $temporallyPassword;
+	}
+	
+	/**
+	 * @param int $userrID ID Пользователя
+	 * @param string $password Пароль
+	 * @return bool Вернет true
+	 * @throws \ReflectionException
+	 */
+	public function updateUserPassword(int $userrID,string $password):bool
+	{
+		$this->update($userrID,['user_password'=>password_hash($password,PASSWORD_DEFAULT)]);
+		return true;
 	}
 	
 	/**

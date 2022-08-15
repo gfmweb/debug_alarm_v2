@@ -3,7 +3,10 @@
 namespace App\Controllers\ADMIN;
 
 use App\Controllers\BaseController;
+use App\Controllers\Redis;
+use App\Models\AdminModel;
 use App\Models\ProjectModel;
+use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
 
 class Admin extends BaseController
@@ -24,8 +27,7 @@ class Admin extends BaseController
 		[
 			['name'=>'Проекты',             'urI'=>'/admin/projects',       'method'=>'GET',      'after'=>['action'=>'show_content']],
 			['name'=>'Пользователи',        'urI'=>'/admin/users',          'method'=>'GET',      'after'=>['action'=>'show_content']],
-			['name'=>'Администраторы',      'urI'=>'/admin/admins',         'method'=>'GET',      'after'=>['action'=>'show_content']],
-			['name'=>'Управление сервисом', 'urI'=>'/admin/settings',       'method'=>'GET',      'after'=>['action'=>'show_content']],
+			['name'=>'Управление сервисом', 'urI'=>'/admin/settings',       'method'=>'GET',      'after'=>['action'=>'/admin/settings']],
 			['name'=>'Выход',               'urI'=>'/logout',               'method'=>'GET',      'after'=>['action'=>'/login']]
 		];
 		return $this->respond(['menu_text'=>$menu_text,'adminActions'=>$adminActions],200);
@@ -80,23 +82,52 @@ class Admin extends BaseController
 	
 	public function getUsers()
 	{
-		$header = 'Пользователи';
-		$data = [];
-		return $this->respond(['header'=>$header,'content'=>$data]);
+		$UserModel = model(UserModel::class);
+		$current_user = $this->session->get('user');
+		$row = $UserModel->getAnotherUsers(0);
+		for($t = 0,$tMax=count($row); $t<$tMax; $t++){
+			if(!is_numeric($row[$t]['user_telegram_id'])){
+				$row[$t]['user_telegram_id']='https://'.$_SERVER['SERVER_NAME'].'/finishRegister/'.$row[$t]['user_login'];}
+		}
+		
+		
+		$header = 'Пользватели';
+		$data = ['greeds'=>['Telegram_id','Имя','Логин','Действия'],
+			'data'=>$this->frontGreedsTransform($row,['user_id']),
+		];
+		$activeDataContentView = 'CRUD';
+		$operations = [
+			'outline'=>[
+				'create'=>[
+					'urI'=>'/admin/createUser',
+					'name'=>'Создать пользователя',
+					'id'=>'create_user',
+					'template'=>file_get_contents('logical_forms/admin/create_user.html')],
+			],
+			'inline'=>[
+				
+				'deleteUser'=>[
+					'urI'=>'/admin/deleteUser',
+					'method'=>'POST',
+					'label'=>'Удалить пользователя',
+					'icon'=>'<i class="fa-solid fa-trash"></i>',
+					'btn_class'=>'btn btn-sm btn-rounded btn-danger',
+					'dependencies'=>['user_id'],
+					'confirmation'=>true,
+					'confirmation_text'=>'Вы действительно хотите удалить'
+				
+				],
+				
+			]
+		];
+		return $this->respond(['header'=>$header,'content'=>$data,'activeDataRequests'=>$operations,'activeDataContentView'=>$activeDataContentView]);
 	}
 	
-	public function getAdmins()
-	{
-		$header = 'Администараторы';
-		$data = [];
-		return $this->respond(['header'=>$header,'content'=>$data]);
-	}
+	
 	
 	public function getSettings()
 	{
-		$header = 'Настройки сервиса';
-		$data = [];
-		return $this->respond(['header'=>$header,'content'=>$data]);
+		return view('admin/admin_settings');
 	}
 	
 	public function getProjectByID()
@@ -110,7 +141,7 @@ class Admin extends BaseController
 			['name'=>'project_name','value'=>$response['data']['project_name'],'type'=>'text','placeholder'=>'Имя проекта'],
 			['name'=>'project_secret','value'=>$response['data']['project_secret'],'type'=>'text','placeholder'=>'Секретный ключ']
 		];
-		$response['form']=['urI'=>'/admin/update_project','method'=>'POST'];
+		$response['form']=['urI'=>'/admin/updateProject','method'=>'POST'];
 		return $this->respond($response,200);
 	}
 	
@@ -126,5 +157,84 @@ class Admin extends BaseController
 		$id = $this->request->getVar('project_id');
 		$Project->deleteProject($id);
 		return $this->respond([$id],200);
+	}
+	
+	public function updateProject()
+	{
+		$projectID = $this->request->getVar('project_id');
+		$projectName = $this->request->getVar('project_name');
+		$projectSecret = $this->request->getVar('project_secret');
+		$Projects = model(ProjectModel::class);
+		$Projects->editProject($projectID,$projectName,$projectSecret);
+		return $this->respond('ok',200);
+	}
+	
+	public function createUser()
+	{
+		$name = $this->request->getVar('user_name');
+		$login = $this->request->getVar('user_login');
+		$UsersModel = model(UserModel::class);
+		$Redis = Redis::getInstance();
+		$Redis->set($login,json_encode(['user_id'=>$UsersModel->preCreateUser($name,$login)],256),300);
+		return $this->respond(['ok'],200);
+		
+	}
+	
+	public function deleteUser()
+	{
+		$user_id = $this->request->getVar('user_id');
+		$UsersModel = model(UserModel::class);
+		$UsersModel->deleteUser($user_id);
+		return $this->respond('ok',200);
+	}
+	
+	public function getServiceStatus()
+	{
+		$Redis = Redis::getInstance();
+		if(!$Redis->exists('global_service_status')){
+			$Redis->set('global_service_status','stop');
+			return $this->respond('stop',200);
+		}
+		return $this->respond((string)$Redis->get('global_service_status'),200);
+	}
+	
+	public function changeServiceMode()
+	{
+		$mode = $this->request->getVar('serviceMode');
+		$Redis = Redis::getInstance();
+		$Redis->set('global_service_status',$mode);
+		return $this->respond((string)$mode,200);
+	}
+	
+	public function setNewPassword()
+	{
+		$current_password = $this->request->getVar('current');
+		$newPassword = $this->request->getVar('password');
+		$Adm = $this->session->get('user');
+		
+		if(!password_verify($current_password,$Adm['admin_password']))
+		{
+			return	$this->respond(['text'=>'Текущий пароль введен неверно','background'=>'bg-danger','btn_text'=>'Исправить'],200);
+		}
+		else{
+			$Admins = model(AdminModel::class);
+			$Users = model(UserModel::class);
+			$Users->updateUserPassword($Adm['user_id'],$newPassword);
+			$Admins->updatePassword($Adm['admin_id'],$newPassword);
+			return $this->respond(['text'=>' Пароль успешно изменен','background'=>'bg-success','btn_text'=>'Ок'],200);
+		}
+		
+		
+	}
+	
+	public function getHookAddress()
+	{
+		return $this->respond(['main'=>'https://'.$_SERVER['SERVER_NAME'].'/','current'=>'hook'],200);
+	}
+	
+	public function setWebHook()
+	{
+		$link = 'https://api.telegram.org/bot'.TELEGRAM.'/setWebhook?url=https://'.$_SERVER['SERVER_NAME'].'/'.$this->request->getVar('route');
+		return $this->respond($link,200);
 	}
 }

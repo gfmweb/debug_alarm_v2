@@ -105,6 +105,7 @@ class Login extends BaseController
 	public function checkCode()
 	{
 		$Users = model(UserModel::class);
+		$Admins = model(AdminModel::class);
 		$telegram_id = $this->request->getVar('telegram');
 		$code = $this->request->getVar('code');
 		$Redis = Redis::getInstance();
@@ -121,6 +122,7 @@ class Login extends BaseController
 		$this->session->set('Login',true);
 		if($verify['target']=='admin'){
 			$this->session->set('admin',$Users->getUserByTelegram((int)$telegram_id,true));
+			$this->session->set('user',$Admins->getAdminByLogin($_SESSION['admin']['user_name']));
 		}
 		else{
 			$this->session->set('user',$Users->getUserByTelegram((int)$telegram_id,false));
@@ -134,8 +136,7 @@ class Login extends BaseController
 	 */
 	public function generateRegisterLinkForUser(int $userID)
 	{
-		$link = 'https://t.me/'.BOT_NAME.'?';
-		$createUser = 'start='.base64_encode('create_user/id=2');
+
 		return $this->respond('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$userID),200);
 		
 	}
@@ -182,8 +183,9 @@ class Login extends BaseController
 			return view('errors/fail_to_register');
 		}
 		$data = json_decode($Redis->get($income[1]),true);
+		
 		$Redis->del($income[1]);
-		return redirect()->to($this->generateRegisterLinkForUser($data['user_id']));
+		return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$data['user_id']));
 		
 	}
 }

@@ -111,7 +111,7 @@ class AdminModel extends Model
 	 */
 	public function updatePassword(int $adminID, string $password):bool
 	{
-		return $this->update($adminID,['admin_password'=>$password]);
+		return $this->update($adminID,['admin_password'=>password_hash($password,PASSWORD_DEFAULT)]);
 	}
 	
 	/**

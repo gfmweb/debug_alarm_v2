@@ -44,7 +44,7 @@ $routes->get('/test_telega','Test::telega');
 $routes->get('/admin','ADMIN\Admin::index');
 
 
-$routes->get('/register/(:any)','Login::RegisterNewUser'); // Редирект на бота недопользователя
+$routes->get('/finishRegister/(:any)','Login::RegisterNewUser'); // Редирект на бота недопользователя
 
 $routes->get('/login','Login::index');
 $routes->get('/CreateAdmin','Login::FirstAdminCreate');
@@ -63,6 +63,17 @@ $routes->get('/admin/settings','ADMIN\Admin::getSettings',['filter'=>'AdminAuth'
 $routes->post('/admin/getProjectByID','ADMIN\Admin::getProjectByID',['filter'=>'AdminAuth']);
 $routes->post('/admin/deleteProject','ADMIN\Admin::deleteProject',['filter'=>'AdminAuth']);
 $routes->post('/admin/createProject','ADMIN\Admin::createProject',['filter'=>'AdminAuth']);
+$routes->post('/admin/updateProject','ADMIN\Admin::updateProject',['filter'=>'AdminAuth']);
+
+
+$routes->post('/admin/createUser','ADMIN\Admin::createUser',['filter'=>'AdminAuth']);
+$routes->post('/admin/deleteUser','ADMIN\Admin::deleteUser',['filter'=>'AdminAuth']);
+
+$routes->get('/admin/getServiceStatus','ADMIN\Admin::getServiceStatus',['filter'=>'AdminAuth']);
+$routes->get('/admin/getHookAddress','ADMIN\Admin::getHookAddress',['filter'=>'AdminAuth']);
+$routes->post('/admin/changeServiceMode','ADMIN\Admin::changeServiceMode',['filter'=>'AdminAuth']);
+$routes->post('/admin/setNewPassword','ADMIN\Admin::setNewPassword',['filter'=>'AdminAuth']);
+$routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAuth']);
 
 /*
  * --------------------------------------------------------------------

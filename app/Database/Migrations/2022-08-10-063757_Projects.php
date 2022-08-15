@@ -29,16 +29,7 @@ class Projects extends Migration
 			        'null'                  => false,
 			        'constraint'            => 64,
 	        ],
-	        'project_rules'=>
-		     [
-			        'type'                 =>'JSON',
-			        'null'                  => false,
-	         ],
-	        'project_permissions'=>
-		     [
-			        'type'                 =>'JSON',
-			        'null'                  => false,
-		     ],
+	       
 	        'created_at datetime default current_timestamp',
 	        'updated_at datetime default current_timestamp on update current_timestamp',
         ]);

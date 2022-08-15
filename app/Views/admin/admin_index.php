@@ -15,75 +15,75 @@
 	      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
 </head>
 <body>
-	<div class="container" id="admin">
-		<div class="col-lg-6 offset-lg-3">
-			<div class="container mt-5 mb-5 bg-secondary shadow-sm text-white">
-				<div class="row justify-content-center">
-					<h3 class="text-center" v-text="menu_text"></h3>
-					<div class="container bg-light">
-						<div class="row justify-content-between">
-							<div class="col-auto" v-for="(item,index) in adminActions">
-								<div class="row mt-5 mb-4">
-									<button v-if="index==adminActiveActionIndex" class="btn btn-success" v-text="item.name" disabled></button>
-									<button v-else class="btn btn-outline-success" v-text="item.name" v-on:click="setActiveAction(index)"></button>
-								</div>
+<div class="container" id="admin">
+	<div class="col-lg-6 offset-lg-3">
+		<div class="container mt-5 mb-5 bg-secondary shadow-sm text-white">
+			<div class="row justify-content-center">
+				<h3 class="text-center" v-text="menu_text"></h3>
+				<div class="container bg-light">
+					<div class="row justify-content-between">
+						<div class="col-auto" v-for="(item,index) in adminActions">
+							<div class="row mt-5 mb-4">
+								<button v-if="index==adminActiveActionIndex" class="btn btn-success" v-text="item.name" disabled></button>
+								<button v-else class="btn btn-outline-success" v-text="item.name" v-on:click="setActiveAction(index)"></button>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<template v-if="activeDataHeaderText!==null">
-				<div class="row justify-content-center">
-					<h3 class="h3 text-center" v-text="activeDataHeaderText"></h3>
-				</div>
-				<template v-if="activeDataContentView=='CRUD'">
-					<table class="table table-bordered table-hover table-success">
-						<thead>
-						<tr>
-							<div class="row justify-content-between mb-3">
-								<div class="col-auto" v-for="but in activeDataRequests.outline">
-									<button class="btn btn-success" v-text="but.name" data-bs-toggle="modal" :data-bs-target="'#'+but.id" ></button>
-									<div v-html="but.template">
-									</div>
+		</div>
+		<template v-if="activeDataHeaderText!==null">
+			<div class="row justify-content-center">
+				<h3 class="h3 text-center" v-text="activeDataHeaderText"></h3>
+			</div>
+			<template v-if="activeDataContentView=='CRUD'">
+				<table class="table table-bordered table-hover table-success">
+					<thead>
+					<tr>
+						<div class="row justify-content-between mb-3">
+							<div class="col-auto" v-for="but in activeDataRequests.outline">
+								<button class="btn btn-success" v-text="but.name" data-bs-toggle="modal" :data-bs-target="'#'+but.id" ></button>
+								<div v-html="but.template">
 								</div>
-								
 							</div>
-						</tr>
-							<tr class="text-center">
-								<th>№</th>
-								<th v-for="header in activeDataContentBlock.greeds" v-text="header"></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="(row, index) in activeDataContentBlock.data">
-								<td v-text="index+1" role="button" class="text-center"></td>
-								<td v-for="(element) in row" v-if="element.hidden==false" v-text="element.value" role="button"></td>
-								<td>
-									<div class="row justify-content-between">
-										<div class="col-auto" v-for="(act) in activeDataRequests.inline">
-											<button :class="act.btn_class" :title="act.label" v-html="act.icon"
-											        v-on:click="makeInlineAction(act.urI,
+						
+						</div>
+					</tr>
+					<tr class="text-center">
+						<th>№</th>
+						<th v-for="header in activeDataContentBlock.greeds" v-text="header"></th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr v-for="(row, index) in activeDataContentBlock.data">
+						<td v-text="index+1" role="button" class="text-center"></td>
+						<td v-for="(element) in row" v-if="element.hidden==false" v-text="element.value" role="button"></td>
+						<td>
+							<div class="row justify-content-between">
+								<div class="col-auto" v-for="(act) in activeDataRequests.inline">
+									<button :class="act.btn_class" :title="act.label" v-html="act.icon"
+									        v-on:click="makeInlineAction(act.urI,
 											        act.method,
 											        act.dependencies,
 											        activeDataContentBlock.data[index],
 											        act.confirmation,
 											        act.confirmation_text)"></button>
-										</div>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</template>
+								</div>
+							</div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
 			</template>
-		</div>
-		<inline_modal :props_data="properties" ></inline_modal>
+		</template>
 	</div>
-	<script>
-		addEventListener("submit", function(event) {
-			event.preventDefault();
-			}, true);
-	</script>
+	<inline_modal :props_data="properties" ></inline_modal>
+</div>
+<script>
+	addEventListener("submit", function(event) {
+		event.preventDefault();
+	}, true);
+</script>
 <script>
 	Vue.component('inline_modal', {
 		props: {'props_data': Object},
@@ -104,29 +104,29 @@
 		},
 		template: '' +
 				'<div class="modal fade" id="inline_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">'+
-						'<div class="modal-dialog">'+
-							'<div class="modal-content">'+
-								'<div class="modal-header">'+
-									'<h5 class="modal-title" id="exampleModalLabel" v-text="header"></h5>'+
-									'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>'+
-								'</div>'+
-								'<form :action="form.urI" :method="form.method" onsubmit="return false;" >'+
-									'<div class="modal-body">'+
-										'<div class="container mt-3">'+
-												'<input type="hidden" :name="target_id.name" :value="target_id.value"/>'+
-												'<div class="container mt-3" v-for="item in fields">'+
-													'<label v-text="item.placeholder"></label>'+
-													'<input :type="item.type" :name="item.name" :value="item.value" :placeholder="item.placeholder" class="form-control" required/>'+
-												'</div>'+
-										'</div>'+
-									'</div>'+
-									'<div class="modal-footer">'+
-										'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>'+
-										'<button type="button" class="btn btn-primary" v-on:click="process_inline_form">Сохранить</button>'+
-								'</form>'+
-							'</div>'+
-						'</div>'+
-					'</div>'+
+				'<div class="modal-dialog">'+
+				'<div class="modal-content">'+
+				'<div class="modal-header">'+
+				'<h5 class="modal-title" id="exampleModalLabel" v-text="header"></h5>'+
+				'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>'+
+				'</div>'+
+				'<form :action="form.urI" :method="form.method" onsubmit="return false;" >'+
+				'<div class="modal-body">'+
+				'<div class="container mt-3">'+
+				'<input type="hidden" :name="target_id.name" :value="target_id.value"/>'+
+				'<div class="container mt-3" v-for="item in fields">'+
+				'<label v-text="item.placeholder"></label>'+
+				'<input :type="item.type" :name="item.name" :value="item.value" :placeholder="item.placeholder" class="form-control" required/>'+
+				'</div>'+
+				'</div>'+
+				'</div>'+
+				'<div class="modal-footer">'+
+				'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>'+
+				'<button type="button" class="btn btn-primary" v-on:click="process_inline_form">Сохранить</button>'+
+				'</form>'+
+				'</div>'+
+				'</div>'+
+				'</div>'+
 				
 				'</div>'
 	})
@@ -149,18 +149,18 @@
 		},
 		methods:{
 			process_form(urI){
-					var forma = document.forms[0]
-					const fieldsCount =  forma.elements.length-1
-					const FormDat = {}
-					const self = this
-					for(let i = 0; i < fieldsCount; i++) {
-						FormDat[forma.elements[i].name] = forma.elements[i].value
-					}
-					axios.post(urI,FormDat).then(res=>{
-						modalka = document.getElementById('close_modal')
-						modalka.click()
-						self.makeAction(self.adminActiveActionIndex)
-					})
+				var forma = document.forms[0]
+				const fieldsCount =  forma.elements.length-1
+				const FormDat = {}
+				const self = this
+				for(let i = 0; i < fieldsCount; i++) {
+					FormDat[forma.elements[i].name] = forma.elements[i].value
+				}
+				axios.post(urI,FormDat).then(res=>{
+					modalka = document.getElementById('close_modal')
+					modalka.click()
+					self.makeAction(self.adminActiveActionIndex)
+				})
 			},
 			process_inline_form(){
 			
@@ -213,30 +213,30 @@
 				if(self.adminActions[index].method == 'GET')
 				{
 					axios.get(self.adminActions[index].urI).then(
-						res=>{
-							if(self.adminActions[index].after.action == 'show_content') {
-								self.activeDataHeaderText = res.data.header
-								self.activeDataContentBlock = res.data.content
-								self.activeDataContentView = res.data.activeDataContentView
-								self.activeDataRequests = res.data.activeDataRequests
+							res=>{
+								if(self.adminActions[index].after.action == 'show_content') {
+									self.activeDataHeaderText = res.data.header
+									self.activeDataContentBlock = res.data.content
+									self.activeDataContentView = res.data.activeDataContentView
+									self.activeDataRequests = res.data.activeDataRequests
+								}
+								else{
+									window.location.replace(self.adminActions[index].after.action);
+								}
 							}
-							else{
-								window.location.replace(self.adminActions[index].after.action);
-							}
-						}
 					)
 				}
 				if(this.adminActions[index].method == 'POST'){
 					axios.post(self.adminActions[index].urI).then(
-						res=>{
-							if(self.adminActions[index].after.action == 'show_content') {
-								self.activeDataHeaderText = res.data.header
-								self.activeDataContentBlock = res.data.content
+							res=>{
+								if(self.adminActions[index].after.action == 'show_content') {
+									self.activeDataHeaderText = res.data.header
+									self.activeDataContentBlock = res.data.content
+								}
+								else{
+									window.location.replace(res.data.after.action);
+								}
 							}
-							else{
-								window.location.replace(res.data.after.action);
-							}
-						}
 					)
 				}
 				

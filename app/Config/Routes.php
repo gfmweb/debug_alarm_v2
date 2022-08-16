@@ -77,6 +77,7 @@ $routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAut
 
 
 $routes->get('/user','USER\User::index',['filter'=>'UserAuth']);
+$routes->get('/user/mainMenu','USER\User::getMainMenu',['filter'=>'UserAuth']);
 
 /*
  * --------------------------------------------------------------------

@@ -66,12 +66,18 @@
 				CurrentActiveAction_ind:null,
 				PathToServer:null,
 				UserIdentity:null,
-				MenuButtons:[{name:'RealTime',action:'real'},{name:'QueryProject',action:'setActualProject'},{name:'Settings',action:'settings'}],
-				MenuHeaderText:'Основные действия'
+				MenuButtons:null,
+				MenuHeaderText:null
 			},
 			methods:{
 				getMainMenu() {
-					console.log('getting Menu')
+					axios.get('/user/mainMenu').then(res=>{
+						this.MenuButtons = res.data.MenuButtons
+						this.MenuHeaderText = res.data.MenuHeaderText
+						this.PathToServer = res.data.PathToServer
+						this.UserIdentity = res.data.UserIdentity
+						Connect.connecttowss(this.PathToServer,this.UserIdentity)
+					})
 				},
 				setAction(ind){
 				 this.CurrentActiveAction_ind=ind
@@ -83,7 +89,7 @@
 			},
 			mounted(){
 				this.getMainMenu()
-				Connect.connecttowss('debug.gfmweb.ru',1)
+				
 			}
 		});
 	</script>

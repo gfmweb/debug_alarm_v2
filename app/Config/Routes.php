@@ -75,6 +75,9 @@ $routes->post('/admin/changeServiceMode','ADMIN\Admin::changeServiceMode',['filt
 $routes->post('/admin/setNewPassword','ADMIN\Admin::setNewPassword',['filter'=>'AdminAuth']);
 $routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAuth']);
 
+
+$routes->get('/user','USER\User::index',['filter'=>'UserAuth']);
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

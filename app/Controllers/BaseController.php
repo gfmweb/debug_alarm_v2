@@ -117,7 +117,7 @@ abstract class BaseController extends Controller
 			$name=array_keys($arr);
 			$i=0;
 			foreach ($arr as $item) {
-				$return .= '<li>'.$name[$i].' => ' . (is_array($item) ? $this->telega($item) : $item) . '</li>';
+				$return .= '<li>'.$name[$i].' => ' . (is_array($item) ? $this->converterArray($item) : $item) . '</li>';
 				$i++;
 			}
 		}

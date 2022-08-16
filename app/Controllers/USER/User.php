@@ -49,7 +49,7 @@ class User extends BaseController
 	{
 		$id = $this->request->getVar('id');
 		$Logs = model(LogModel::class);
-		$log = $Logs->find(1);
+		$log = $Logs->find($id);
 		return $this->respond($this->arrayToHTML(json_decode($log['log_structured_data'],true)),200);
 	}
 }

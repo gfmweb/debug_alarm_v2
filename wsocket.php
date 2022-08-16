@@ -26,35 +26,22 @@
 		$interval = 1; // пингуем каждую  секунду
 		Timer::add($interval, function() use(&$connections) {
 			
-			
 			foreach ($connections as $c) {
 				// Если ответ не пришел 3 раза, то удаляем соединение из списка
 				// и оповещаем всех участников об "отвалившемся" пользователе
 				if ($c->pingWithoutResponseCount >= 3) {
 					unset($connections[$c->id]);
-					
 					$messageData = [
 						'action' => 'ConnectionLost',
 						'userId' => $c->id,
-						'userName' => $c->userName,
-						'gender' => $c->gender,
-						'userColor' => $c->userColor
+
 					];
-					$message = json_encode($messageData);
-									$c->destroy(); // уничтожаем соединение
-					
-					foreach ($connections as $c) {
-						$c->send($message);
-					}
-					
+					$c->destroy(); // уничтожаем соединение
 				} else {
 					foreach ($connections as $c) {
 						$c->send('{"action":"Ping"}');
 						$c->pingWithoutResponseCount++; // увеличиваем счетчик пингов
 					}
-					
-					
-					
 				}
 			}
 			
@@ -67,28 +54,8 @@
 		$connection->onWebSocketConnect = function($connection) use (&$connections)
 		{
 			// Достаём имя пользователя, если оно было указано
-			if (isset($_GET['token'])) {
-				$originalUserName = trim($_GET['token']);
-			}
-			else {
-				
-				$originalUserName = 'Коннект без токена ?token=null';
-			}
-			
-			
-			if (isset($_GET['gender'])) {
-				$gender = (int) $_GET['gender'];
-			}
-			else {
-				$gender = 0;
-			}
-			
-			if ($gender != 0 && $gender != 1 && $gender != 2)
-				$gender = 0;
-			
-			
+			$originalUserName = time();
 			$userName = $originalUserName;
-			
 			$num = 2;
 			do {
 				$duplicate = false;
@@ -102,53 +69,28 @@
 				}
 			}
 			while($duplicate);
-			
 			// Добавляем соединение в список
 			$connection->userName = $userName;
-			$connection->gender = $gender;
-			$connection->userColor = '';
 			$connection->pingWithoutResponseCount = 0; // счетчик безответных пингов
-			
 			$connections[$connection->id] = $connection;
-			
 			// Собираем список всех пользователей
 			$users = [];
 			foreach ($connections as $c) {
 				$users[] = [
 					'userId' => $c->id,
 					'userName' => $c->userName,
-					'gender' => $c->gender,
-					'userColor' => $c->userColor
 				];
 			}
 			
 			// Отправляем пользователю данные авторизации
 			$messageData = [
 				'action' => 'Authorized',
-				'userId' => $connection->id,
 				'userName' => $connection->userName,
-				'gender' => $connection->gender,
-				'userColor' => $connection->userColor,
 				'users' => $users
 			];
-			
-			
-			
 			$connection->send(json_encode($messageData));
-			
 			// Оповещаем всех пользователей о новом участнике в чате
-			$messageData = [
-				'action' => 'Connected',
-				'userId' => $connection->id,
-				'userName' => $connection->userName,
-				'gender' => $connection->gender,
-				'userColor' => $connection->userColor
-			];
-			$message = json_encode($messageData);
 			
-			foreach ($connections as $c) {
-				$c->send($message);
-			}
 		};
 	};
 	
@@ -158,32 +100,7 @@
 		if (!isset($connections[$connection->id])) {
 			return;
 		}
-		
-		// Удаляем соединение из списка
-		$redis = new \Redis();
-		$redis->connect('127.0.0.1',6379);
-		$redis->select(6);
-		$redis->del($connection->userName);
-		
-		
 		unset($connections[$connection->id]);
-		
-		
-		// Оповещаем всех пользователей о выходе участника из чата
-		$messageData = [
-			'action' => 'Disconnected',
-			'userId' => $connection->id,
-			'userName' => $connection->userName,
-			'gender' => $connection->gender,
-			'userColor' => $connection->userColor
-		];
-		$message = json_encode($messageData);
-		
-		
-		
-		foreach ($connections as $c) {
-			$c->send($message);
-		}
 	};
 	
 	$worker->onMessage = function($connection, $message) use (&$connections)
@@ -195,7 +112,6 @@
 		if ($action == 'Pong') {
 			// При получении сообщения "Pong", обнуляем счетчик пингов
 			$connection->pingWithoutResponseCount = 0;
-			
 		}
 		
 		else {
@@ -204,12 +120,10 @@
 			$messageData['userName'] = $connection->userName;
 			$messageData['gender'] = $connection->gender;
 			$messageData['userColor'] = $connection->userColor;
-			
 			// Преобразуем специальные символы в HTML-сущности в тексте сообщения
 			$messageData['text'] = htmlspecialchars($messageData['text']);
 			// Заменяем текст заключенный в фигурные скобки на жирный
 			$messageData['text'] = preg_replace('/\{(.*)\}/u', '<b>\\1</b>', $messageData['text']);
-			
 			if ($toUserId == 0) {
 				// Отправляем сообщение всем пользователям
 				$messageData['action'] = 'PublicMessage';
@@ -221,7 +135,6 @@
 						$message = ['action'=>'DEBUG_INFO','data'=>'MESSAGE FROM: '.$c->userName.' '.$messageData];
 						$message = json_encode($message);
 						$admin->send($message);
-						
 					}
 				}
 			}

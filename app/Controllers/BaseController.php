@@ -91,4 +91,40 @@ abstract class BaseController extends Controller
 		
 		return $resulting_array;
 	}
+	
+	/**
+	 * @param array $array Массив данных
+	 * @return string Готовый HTML код представления
+	 */
+	public function arrayToHTML(array $array):string
+	{
+		$result='<ul>';
+		$names = array_keys($array);
+		$i=0;
+		foreach ($array as $el){
+			
+			$result.='<li>'.$names[$i]. ' => '.$this->converterArray($el).'</li>';
+			$i++;
+		}
+		$result.='</ul>';
+		return $result;
+	}
+	
+	private function converterArray($arr): string
+	{
+		$return = '<ul>';
+		if(is_array($arr)) {
+			$name=array_keys($arr);
+			$i=0;
+			foreach ($arr as $item) {
+				$return .= '<li>'.$name[$i].' => ' . (is_array($item) ? $this->telega($item) : $item) . '</li>';
+				$i++;
+			}
+		}
+		else{
+			$return.='<li>'.$arr.'</li>';
+		}
+		$return .= '</ul>';
+		return $return;
+	}
 }

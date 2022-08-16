@@ -39,8 +39,9 @@ class TelegramHooks extends BaseController
 			   $Users = model(UserModel::class);
 			   $pretendent = $Users->find((int)$user_array[1]);
 			   if(is_null($pretendent['user_telegram_id'])) { // Проверяем что у пользователя еще нет телеграмID
-				   $Users->update((int)$user_array[1], ['user_telegram_id'=>(int)$sender]);
-				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация завершена'.PHP_EOL.'Зайдите в лк на сайте</b>',false);
+				   $temporary = rand(1111,9999);
+				   $Users->update((int)$user_array[1], ['user_telegram_id'=>(int)$sender,'user_password'=>password_hash($temporary,PASSWORD_DEFAULT)]);
+				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация завершена'.PHP_EOL.'Зайдите в лк на сайте</b>'.PHP_EOL.'Ваш временный пароль: <b>'.$temporary.'</b>',false);
 			   }
 		   }
 	    }

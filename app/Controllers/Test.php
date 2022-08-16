@@ -15,22 +15,21 @@ class Test extends BaseController
 	
     public function index()
     {
+		$names = ['СМС-Конвеер','Нарезчик анкет','ВП'];
+		$actions = ['Начало обработки','Рабочий момент','Ответ от внешнего сервиса','Конец обработки'];
+		$array = ['project_name'=>$names[rand(0,2)],'log_id'=>rand(1000,2000),'title'=>$actions[rand(0,3)],'time'=>date('Y-m-d H:i:s')];
+		
+		
 		$redis = new \Redis();
 		$redis->connect('127.0.0.1',6379);
-		/*$redis->del('list');
-		for ($i = 0; $i < 97; $i++){
-			$redis->lPush('list','row'.$i);
-		}*/
-		$count = $redis->lLen('list');
-		echo $count.'<br/>';
-		if($count > 99){
-			$redis->rPop('list');
-			$redis->lPush('list','simulated_row');
+		$redis->del('list_logs');
+		for ($i = 0; $i < 95; $i++){
+			$redis->lPush('list_logs',json_encode($array,256));
 		}
-		else{
-			$redis->lPush('list','communicative_string');
-		}
-		echo $redis->lIndex('list', 0);
+		
+		
+		
+		
     }
 	
 	

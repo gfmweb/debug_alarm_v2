@@ -26,8 +26,41 @@
 				<button class="btn btn-sm btn-primary" v-text="but.name" v-else></button>
 			</div>
 		</div>
-		<div class="container">
-			<!-- templates -->
+		<div class="container mt-5">
+			<!-- templates RealTimeView-->
+			<template v-if="CurrentActiveAction_ind == 0">
+				<table class="table table-striped table-hover table-bordered table info mt-5">
+					<thead class="text-center">
+						
+						<th>Project</th>
+						<th>Title</th>
+						<th>Time</th>
+					</thead>
+					<tbody>
+						<tr v-for="(log, index) in ActualListLogs" role="button" v-on:click="getFullLogInfo(log.log_id)">
+							<td v-text="log.project_name"></td>
+							<td v-text="log.title"></td>
+							<td v-text="log.time"></td>
+						</tr>
+					</tbody>
+				</table>
+			</template>
+			
+		</div>
+		<div class="modal fade" id="InfoLog" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Информация по записи лога</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+					</div>
+					<div class="modal-body" v-html="FullLogInfoBody"></div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cls_btn_hook">Закрыть</button>
+						<button type="button" class="btn btn-primary">Сохранить изменения</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	<script>
@@ -67,9 +100,18 @@
 				PathToServer:null,
 				UserIdentity:null,
 				MenuButtons:null,
-				MenuHeaderText:null
+				MenuHeaderText:null,
+				ActualListLogs:null,
+				FullLogInfoBody:null
 			},
 			methods:{
+				getFullLogInfo(log_id){
+					axios.get('/user/getLogInfoByID?id='+log_id).then(res=>{this.FullLogInfoBody = res.data})
+					var myModal = new bootstrap.Modal(document.getElementById('InfoLog'), {
+						keyboard: false
+					})
+					myModal.toggle();
+				},
 				getMainMenu() {
 					axios.get('/user/mainMenu').then(res=>{
 						this.MenuButtons = res.data.MenuButtons
@@ -81,6 +123,11 @@
 				},
 				setAction(ind){
 				 this.CurrentActiveAction_ind=ind
+					if(this.MenuButtons[ind].action == 'real' && this.ActualListLogs == null){
+						axios.get('/user/getLastLogs').then(res=>{
+							this.ActualListLogs = res.data
+						})
+					}
 				},
 				receiverMethod(data)
 				{

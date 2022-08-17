@@ -80,6 +80,7 @@ $routes->get('/user','USER\User::index',['filter'=>'UserAuth']);
 $routes->get('/user/mainMenu','USER\User::getMainMenu',['filter'=>'UserAuth']);
 $routes->get('/user/getLastLogs','USER\User::getLastLogs',['filter'=>'UserAuth']);
 $routes->get('/user/getLogInfoByID','USER\User::getLogInfoByID',['filter'=>'UserAuth']);
+$routes->post('/user/sendAlarm','USER\User::sendAlarm',['filter'=>'UserAuth']);
 
 /*
  * --------------------------------------------------------------------

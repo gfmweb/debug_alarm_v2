@@ -16,5 +16,6 @@ class Admin extends Seeder
 	 
 	    $query = 'INSERT INTO users SET  user_name = "'.$login.'", user_login="'.$login.'", user_password = "'.$password.'"';
 	    $this->db->query($query);
+		echo file_get_contents('https://api.telegram.org/bot'.TELEGRAM.'/setWebhook?url=https://'.$_SERVER['SERVER_NAME'].'/hook').'<br/> WebHooks was set by default!';
     }
 }

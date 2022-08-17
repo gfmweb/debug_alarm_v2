@@ -16,7 +16,8 @@ class Test extends BaseController
 	
     public function index()
     {
-	   
+	 $result = Redis::updateLogList();
+	 echo '<pre>'; print_r($result); echo '</pre>';
     }
 	
 	

@@ -28,7 +28,7 @@ class User extends BaseController
 					[
 						['name'=>'Real time','action'=>'real'],
 						['name'=>'Выборка','action'=>'prepareQuery'],
-						['name'=>'Настройки','action'=>'settings'],
+						['name'=>'Сменить пароль','action'=>'settings'],
 					],
 				'MenuHeaderText'=>'Основные действия ',
 				'PathToServer'=>$_SERVER['SERVER_NAME'],
@@ -92,5 +92,23 @@ class User extends BaseController
 			//todo inline button accept action! Payload telegram && recall to sender
 		}
 		return $this->respond('ok',200);
+	}
+	
+	public function setNewPassword()
+	{
+		$response['classs']='bg-danger';
+		$response['text']='Ващ текущий пароль введен неверно';
+		$Users = model(UserModel::class);
+		$pass = $this->request->getVar('password');
+		$newPass = $this->request->getVar('newPassword');
+		$currentUser = $Users->find($_SESSION['user']['user_id']);
+		if(!password_verify($pass,$currentUser['user_password'])){
+			return $this->respond($response,200);
+		}
+		$Users->updateUserPassword($_SESSION['user']['user_id'],$newPass);
+		$response['classs']='bg-success';
+		$response['text']='Ващ  пароль успешно изменён';
+		return $this->respond($response,200);
+		
 	}
 }

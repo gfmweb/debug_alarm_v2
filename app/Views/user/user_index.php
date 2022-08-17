@@ -85,7 +85,47 @@
 					</tbody>
 				</table>
 			</template>
-			
+			<template v-if="CurrentActiveAction_ind == 1">
+				<p>Условия выборки</p>
+				<p>Результирующая таблица</p>
+			</template>
+			<template v-if="CurrentActiveAction_ind ==2">
+				<div class="row justify-content-center">
+					<div class="col-lg-4">
+						<div class="card">
+							<form onsubmit="UserApp.changePassword(); return false">
+								<div class="card-header">
+							<h4 class="text-center">
+							Смена пароля
+								<span role="button" v-on:click="ChandeInputMod" v-if="inputsMode=='password'"><i class="fa-solid fa-eye-slash"></i></span>
+								<span role="button" v-on:click="ChandeInputMod" v-else>	<i class="fa-solid fa-eye"></i></span>
+							</h4>
+							<template v-if="PasswordResults!==null">
+								<div :class="'container '+PasswordResults.classs+' text-center'"><p v-text="PasswordResults.text"></p>
+									<button class="btn btn-outline-dark mb-3" type="reset" v-on:click="clearForm" v-if="PasswordResults.classs =='bg-success'">Вот и хорошо</button>
+								</div>
+							</template>
+						</div>
+								<div class="card-body">
+									<label>Ваш текущий пароль</label>
+									<input :type="inputsMode" class="form-control mb-3" v-model.trim="currentPassword" placeholder="Ваш текущий пароль" name="currentPassword" required/>
+									<label>Ваш новый пароль</label>
+									<input :type="inputsMode" class="form-control mb-3" v-model.trim="newPassword" placeholder="Ваш новый пароль" name="newPassword" required/>
+									<label>Новый пароль еще раз</label>
+									<input :type="inputsMode" class="form-control mb-3" v-model.trim="confirmPassword" placeholder="Ваш новый пароль" name="confirmPassword" required/>
+								</div>
+								<div class="card-footer">
+							<div class="row justify-content-end">
+								<div class="col-4">
+									<button class="btn btn-success" type="submit">Сменить</button>
+								</div>
+							</div>
+						</div>
+						</form>
+					</div>
+					</div>
+				</div>
+			</template>
 		</div>
 		<div class="modal fade" id="InfoLog" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 			<div class="modal-dialog">
@@ -117,6 +157,11 @@
 			</div>
 		</div>
 	</div>
+	<script>
+		addEventListener("submit", function(event) {
+			event.preventDefault();
+		}, true);
+	</script>
 	<script>
 		var Connect = new Vue({
 			el:"#wsocket",
@@ -172,9 +217,37 @@
 					part:'null',
 					status:'null',
 					
-				}
+				},
+				inputsMode:'password',
+				PasswordResults:null,
+				currentPassword:null,
+				newPassword:null,
+				confirmPassword:null
 			},
 			methods:{
+				clearForm(){
+					this.PasswordResults = null
+					this.currentPassword = null
+					this.newPassword = null
+					this.confirmPassword = null
+				},
+				ChandeInputMod()
+				{if(this.inputsMode == "password"){this.inputsMode ='text'}else{this.inputsMode = 'password'}},
+				changePassword(){
+					this.PasswordResults = null
+					if(this.newPassword!==this.confirmPassword){
+						this.PasswordResults = {
+							classs:'bg-danger',
+							text:'Ваши новые пароли не совпадают'
+						}
+					}
+					else{
+						let Form = {password:this.currentPassword,newPassword:this.newPassword}
+						axios.post('/user/setNewPassword',Form).then(res=>{
+							this.PasswordResults = res.data
+						})
+					}
+				},
 				disableShare()
 				{
 					this.Recipient = null

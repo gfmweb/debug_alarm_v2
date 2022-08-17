@@ -59,35 +59,11 @@
 						</div>
 					</div>
 				</div>
-				<table class="table table-striped table-hover table-bordered table info mt-5">
-					<thead class="text-center">
-						<th>Сервис</th>
-						<th>Title</th>
-						<th>Время</th>
-					</thead>
-					<tbody>
-						<tr v-for="(log, index) in ActualListLogs" role="button"
-						    v-on:click="getFullLogInfo(log.log_id)"
-							v-if="
-							(log.project_name == Filters.project_name || Filters.project_name=='null')
-							&&(log.title==Filters.title || Filters.title == '')
-							&&(log.part == Filters.part || Filters.part == 'null')
-							&&(log.status == Filters.status || Filters.status == 'null')
-								 "
-						>
-							<td v-text="log.project_name" class="bg-danger" v-if="log.status=='critical'"></td>
-							<td v-text="log.project_name" v-else></td>
-							<td v-text="log.title" class="bg-danger" v-if="log.status=='critical'" ></td>
-							<td v-text="log.title" v-else></td>
-							<td v-text="log.time" class="bg-danger" v-if="log.status=='critical'"></td>
-							<td v-text="log.time" v-else></td>
-						</tr>
-					</tbody>
-				</table>
+				<logs_table :actual-list-logs="ActualListLogs" :filters="Filters"></logs_table>
 			</template>
 			<template v-if="CurrentActiveAction_ind == 1">
 				<p>Условия выборки</p>
-				<p>Результирующая таблица</p>
+				<logs_table :actual-list-logs="ActualListLogsDB" :filters="Filters"></logs_table>
 			</template>
 			<template v-if="CurrentActiveAction_ind ==2">
 				<div class="row justify-content-center">
@@ -157,6 +133,7 @@
 			</div>
 		</div>
 	</div>
+	<script src="./front_app/user_table.js"></script>
 	<script>
 		addEventListener("submit", function(event) {
 			event.preventDefault();
@@ -202,6 +179,7 @@
 				MenuButtons:null,
 				MenuHeaderText:null,
 				ActualListLogs:null,
+				ActualListLogsDB:null,
 				FullLogInfoBody:null,
 				ProjectsFilterArray:null,
 				ProjectPartArray:null,
@@ -309,6 +287,7 @@
 			},
 			mounted(){
 				this.getMainMenu()
+				this.$root.$on('get_info',function(id){this.getFullLogInfo(id)});
 				
 			}
 		});

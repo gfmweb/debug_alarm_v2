@@ -9,11 +9,7 @@ Vue.component('inline_modal', {
 		form(){return this.props_data.form},
 		target_id(){return this.props_data.target_id}
 	},
-	methods:{
-		process_inline_form(){
 
-		}
-	},
 	template: '' +
 		'<div class="modal fade" id="inline_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">'+
 		'<div class="modal-dialog">'+

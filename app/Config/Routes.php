@@ -82,6 +82,7 @@ $routes->get('/user/getLastLogs','USER\User::getLastLogs',['filter'=>'UserAuth']
 $routes->get('/user/getLogInfoByID','USER\User::getLogInfoByID',['filter'=>'UserAuth']);
 $routes->post('/user/sendAlarm','USER\User::sendAlarm',['filter'=>'UserAuth']);
 $routes->post('/user/setNewPassword','USER\User::setNewPassword',['filter'=>'UserAuth']);
+$routes->post('/user/LogDBQuery','USER\User::LogDBQuery',['filter'=>'UserAuth']);
 
 /*
  * --------------------------------------------------------------------

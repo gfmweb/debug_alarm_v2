@@ -59,11 +59,72 @@
 						</div>
 					</div>
 				</div>
-				<logs_table :actual-list-logs="ActualListLogs" :filters="Filters"></logs_table>
+				<logs_table :actual-list-logs="ActualListLogs" :Filters="Filters"></logs_table>
 			</template>
 			<template v-if="CurrentActiveAction_ind == 1">
-				<p>Условия выборки</p>
-				<logs_table :actual-list-logs="ActualListLogsDB" :filters="Filters"></logs_table>
+				<div class="container bg-warning">
+					<div class="row justify-content-between">
+						
+						<div class="col-lg-3">
+							<div class="row">&nbsp;</div>
+							<label>Service</label>
+							<select class="form-select mb-2" v-model.trim="Query.project_name">
+								<option value="null" selected>Все</option>
+								<option v-for="item in ProjectsFilterArray" v-text="item.project_name" :value="item.project_name"></option>
+							</select>
+						</div>
+						
+						<div class="col-lg-3">
+							<div class="row">&nbsp;</div>
+							<label>Volume</label>
+							<input type="search" v-model.trim="Query.volume" placeholder="Значение" class="form-control mb-2">
+						</div>
+						<div class="col-lg-3">
+							<label>Время начала</label>
+							<div class="container">
+								<div class="row justify-content-center">
+									<div class="col-7">
+										<label>Y-m-d H:i</label>
+										<input type="datetime-local" v-model.trim="Query.startdt" class="form-control mb-2">
+									</div>
+									<div class="col-4">
+										<label>Секунд</label>
+										<input type="number" min="00" max="59"  v-model.trim="Query.starts" class="form-control">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3">
+							<label>Время конца</label>
+							<div class="container">
+								<div class="row justify-content-between">
+									<div class="col-7">
+										<label>Y-m-d H:i</label>
+										<input type="datetime-local" v-model.trim="Query.finishdt" class="form-control mb-2">
+									</div>
+									<div class="col-4">
+										<label>Секунд</label>
+										<input type="number"  min="00" max="59" v-model.trim="Query.finishs" class="form-control">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3">
+							<div class="row">&nbsp;</div>
+							<label>ID</label>
+							<input type="number" v-model.trim="Query.id" class="form-control mb-4" placeholder="ID лога">
+						</div>
+					</div>
+					<div class="row justify-content-end">
+						<div class="col-lg-1 mb-2">
+							<div class="row d-lg-none">
+								<button class="btn btn-primary" v-on:click="getQueryDB()">Найти</button>
+							</div>
+							<button class="btn btn-primary d-none d-lg-block" v-on:click="getQueryDB()">Найти</button>
+						</div>
+					</div>
+				</div>
+				<logs_table :actual-list-logs="ActualListLogsDB" :Filters="Filters"></logs_table>
 			</template>
 			<template v-if="CurrentActiveAction_ind ==2">
 				<div class="row justify-content-center">
@@ -134,39 +195,7 @@
 		</div>
 	</div>
 	<script src="./front_app/user_table.js"></script>
-	<script>
-		addEventListener("submit", function(event) {
-			event.preventDefault();
-		}, true);
-	</script>
-	<script>
-		var Connect = new Vue({
-			el:"#wsocket",
-			data:{
-				Socket: null,
-				ToSay:null
-			},
-			methods:{
-				connecttowss: function(pathToSRV,userIdentity){
-					const self = this;
-					self.Socket =  new WebSocket('wss://'+pathToSRV+':27800?user='+userIdentity),
-							self.Socket.onmessage = function (event) {
-								let income = JSON.parse(event.data)
-								if(income.action=='Ping') {
-									let messPong={ 'action':'Pong' }
-									self.Socket.send(JSON.stringify(messPong))
-									if(self.ToSay!==null){
-										let message = {'action':self.ToSay}
-										self.Socket.send(JSON.stringify(message))
-									}
-								}
-								else{UserApp.receiverMethod(income)}
-							};
-				},
-			},
-			
-		})
-	</script>
+	<script src="./front_app/user_index.js"></script>
 	<script>
 		<!-- todo add in RealTime in head of list websocket message NEWLOG + check lenght-->
 		const UserApp = new Vue({
@@ -196,6 +225,15 @@
 					status:'null',
 					
 				},
+				Query:{
+					id:null,
+					project_name:'null',
+					volume:'',
+					startdt:null,
+					starts:'00',
+					finishdt:null,
+					finishs:'59'
+				},
 				inputsMode:'password',
 				PasswordResults:null,
 				currentPassword:null,
@@ -203,6 +241,21 @@
 				confirmPassword:null
 			},
 			methods:{
+				getQueryDB(){
+					let Form = {
+						id:this.Query.id,
+						project_name:this.Query.project_name,
+						query:this.Query.volume,
+						starttime:this.Query.startdt,
+						startsec:this.Query.starts,
+						finishtime:this.Query.finishdt,
+						finishs:this.Query.finishs
+					}
+					axios.post('/user/LogDBQuery',Form).then(res=>{
+						console.log(res.data)
+						//this.ActualListLogsDB = res.data
+					})
+				},
 				clearForm(){
 					this.PasswordResults = null
 					this.currentPassword = null
@@ -288,7 +341,13 @@
 			mounted(){
 				this.getMainMenu()
 				this.$root.$on('get_info',function(id){this.getFullLogInfo(id)});
-				
+				axios.get('/user/getLastLogs').then(res=>{
+					this.ActualListLogs = res.data.list
+					this.ProjectsFilterArray = res.data.projects
+					this.ProjectPartArray = res.data.parts
+					this.ProjectStatusArray = res.data.statuses
+					this.Users = res.data.users
+				})
 			}
 		});
 	</script>

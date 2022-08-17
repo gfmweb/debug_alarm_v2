@@ -110,5 +110,90 @@ class User extends BaseController
 		$response['text']='Ващ  пароль успешно изменён';
 		return $this->respond($response,200);
 		
+		
+		
+	}
+	public function LogDBQuery()
+	{
+		$Projects = model(ProjectModel::class);
+		$Logs = model(LogModel::class);
+		$idLog = $this->request->getVar('id');
+		if(!is_null($idLog))
+		{
+			$DBdata = $Logs->find((int)$idLog);
+			return $this->respond($this->prepareForFront($DBdata),200);
+		}
+		$project_to_find = $this->request->getVar('project_name');
+		$projects = $Projects->getAll();
+		// Собираем часть запроса относящегося к проекту
+		$project_request = [];
+		if($project_to_find !== 'null'){
+			foreach ($projects as $project) {
+				if ($project['project_name'] == $project_to_find) {
+					array_push($project_request, $project['project_id']);
+				}
+			}
+		}
+		else{
+			foreach ($projects as $project) {
+				array_push($project_request, $project['project_id']);
+			}
+			
+		}
+		// Собираем часть запроса относящегося к искомому значению
+		$needle = $this->request->getVar('query');
+		if($needle!==''){ // Добавить поиск значения
+		
+		}
+
+		$startDateTime = $this->request->getVar('starttime');
+		$startDateTime = str_replace('T',' ',$startDateTime);
+		if($startDateTime!==''){ //Работаем по ветке есть начало
+			$startSeconds = $this->request->getVar('startsec');
+			if(strlen($startSeconds)<1)$startSeconds = '0'.$startSeconds;
+			if(strlen($startSeconds)<2)$startSeconds = '0'.$startSeconds;
+			$startDateTime.=':'.$startSeconds;
+		}
+
+		$finishDateTime = $this->request->getVar('finishtime');
+		$finishDateTime = str_replace('T',' ',$finishDateTime);
+		if($finishDateTime!==''){ //Работаем по ветке есть начало
+			$finishSeconds = $this->request->getVar('finishs');
+			if(strlen($finishSeconds)<1)$finishSeconds = '0'.$finishSeconds;
+			if(strlen($finishSeconds)<2)$finishSeconds = '0'.$finishSeconds;
+			$finishDateTime.=':'.$finishSeconds;
+		}
+		// Варианты поиска
+		/**
+		 *  Есть дата начала + нет Даты конца + НЕТ Значения
+		 *
+		 *  Есть дата начала + нет Даты конца + ЕСТЬ Значение
+		 *
+		 *  Есть дата начала + Есть дата конца + Нет значения
+		 *
+		 *  Есть дата начала + Есть дата конца + ЕСТЬ значение
+		 *
+		 *  НЕТ даты начала +Есть дата конца + Нет Выборки
+		 *
+		 *  НЕТ даты начала + Есть дата конца + ЕСТЬ Выборка
+		 *
+		 *  НЕТ даты начала + Нет даты конца + Нет Выборки
+		 *
+		 *  НЕТ даты начала + Нет даты конца + ЕСТЬ Выборка
+		 *
+		 *
+		 * Приведение к виду как на сидере и отдача на фронт
+		 */
+		
+		return $this->respond(['id'=>$idLog],200);
+	}
+	
+	/**
+	 * @param array $Data Массив логов из БД
+	 * @return array Подготовленный к рендерингу массив для отправки на фронт
+	 */
+	private function prepareForFront(array $Data):array
+	{
+		return [];
 	}
 }

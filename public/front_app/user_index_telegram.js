@@ -188,7 +188,7 @@ const UserApp = new Vue({
 			const self = this
 			this.userID = this.userInfo.user.id
 			axios.post('/loginByTelegram',{id:this.userID}).then(res=>{
-				if(res.data=='ok') {
+				if(res.data!=='close') {
 					telega.expand()
 					self.getMainMenu()
 					self.$root.$on('get_info', function (id) {

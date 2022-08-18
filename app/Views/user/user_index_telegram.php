@@ -201,6 +201,6 @@
 		</div>
 	</div>
 	<script src="./front_app/user_table.js"></script>
-	<script src="./front_app/user_index_telegram.js"></script>
+	<script src="./front_app/user_index_telegram.js?time=<?=time()?>"></script>
 </body>
 </html>

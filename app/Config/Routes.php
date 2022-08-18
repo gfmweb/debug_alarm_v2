@@ -78,11 +78,14 @@ $routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAut
 
 $routes->get('/user','USER\User::index');
 $routes->get('/user/mainMenu','USER\User::getMainMenu',['filter'=>'UserAuth']);
+$routes->get('/telegram/mainMenu','TELEGRAM\TelegramView::getMainMenu',['filter'=>'UserAuth']);
 $routes->get('/user/getLastLogs','USER\User::getLastLogs',['filter'=>'UserAuth']);
 $routes->get('/user/getLogInfoByID','USER\User::getLogInfoByID',['filter'=>'UserAuth']);
 $routes->post('/user/sendAlarm','USER\User::sendAlarm',['filter'=>'UserAuth']);
 $routes->post('/user/setNewPassword','USER\User::setNewPassword',['filter'=>'UserAuth']);
 $routes->post('/user/LogDBQuery','USER\User::LogDBQuery',['filter'=>'UserAuth']);
+
+$routes->post('/loginByTelegram','TELEGRAM\TelegramView::login');
 
 /*
  * --------------------------------------------------------------------

@@ -23,9 +23,11 @@
 	
 	$worker->onWorkerStart = function($worker) use (&$connections)
 	{
+		
 		$interval = 1; // пингуем каждую  секунду
 		Timer::add($interval, function() use(&$connections) {
-			
+			$Redis = new \Redis();
+			$Redis->connect('127.0.0.1',6379);
 			foreach ($connections as $c) {
 				// Если ответ не пришел 3 раза, то удаляем соединение из списка
 				// и оповещаем всех участников об "отвалившемся" пользователе
@@ -38,9 +40,46 @@
 					];
 					$c->destroy(); // уничтожаем соединение
 				} else {
+					if($Redis->exists('real_time_update')){
+						$updates = [];
+						$counter = $Redis->lLen('real_time_update');
+						for($i=$counter;$i >-1; $i--){
+							$str = $Redis->rPop('real_time_update');
+							if(strlen($str)>0) {
+								array_push($updates, $str);
+							}
+						}
+						
+						
+					}
+					$Lifetime = '';
+					$start_date = new DateTime(date('Y-m-d H:i:s',$Redis->get('service_at_work')));
+					$since_start = $start_date->diff(new DateTime(date('Y-m-d H:i:s')));
+					$Lifetime.= $since_start->y.' лет '.$since_start->m.' мес '.$since_start->d.' д '.$since_start->h.' час '.$since_start->i.' мин '. $since_start->s.' сек';
+					
+					
+					
 					foreach ($connections as $c) {
+						
 						$c->send('{"action":"Ping"}');
+						$c->send('{"lifeTime":"'.$Lifetime.'"}');
+						$c->send('{"TotalLogs":"'.$Redis->get('total_log_rows').'"}');
 						$c->pingWithoutResponseCount++; // увеличиваем счетчик пингов
+						if(isset($updates)){
+							foreach ($updates as $update) {
+								$c->send('{"update":'.$update.'}');
+							}
+							$c->send('{"counter":"'.$counter.'"}');
+							$current_max = (int)$Redis->get('service_max_requests');
+							if((int)$counter > $current_max){
+								$Redis->set('service_max_requests',$counter);
+								$c->send('{"overHeadCounter":"'.$counter.'"}');
+							}
+						}
+						else{
+							$c->send('{"counter":"0"}');
+							$c->send('{"overHeadCounter":"'.$Redis->get('service_max_requests').'"}');
+						}
 					}
 				}
 			}

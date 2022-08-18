@@ -201,8 +201,12 @@ class Admin extends BaseController
 	public function changeServiceMode()
 	{
 		$mode = $this->request->getVar('serviceMode');
+		
 		$Redis = Redis::getInstance();
 		$Redis->set('global_service_status',$mode);
+		if($mode == 'start'){
+			$Redis->set('service_at_work',time());
+		}
 		return $this->respond((string)$mode,200);
 	}
 	

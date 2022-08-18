@@ -186,6 +186,7 @@ class Login extends BaseController
 			$counter = $Logs->select('log_id')->limit(1)->orderBy('log_id','DESC')->find();
 			$Rediska->set('total_log_rows',$counter[0]['log_id']);
 			$Rediska->set('global_service_status','stop');
+			$Rediska->set('service_max_requests',0);
 			$Rediska->close();
 			return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_admin'));
 		}

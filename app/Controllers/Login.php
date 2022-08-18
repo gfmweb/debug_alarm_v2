@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Controllers\TELEGRAM\TelegramAPI;
 use App\Models\AdminModel;
+use App\Models\LogModel;
 use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
 
@@ -147,9 +148,45 @@ class Login extends BaseController
 	 */
 	public function FirstAdminCreate()
 	{
+		
 		$Users = model(UserModel::class);
 		$user = $Users->first();
 		if(is_null($user['user_telegram_id'])){
+			$Logs = model(LogModel::class);
+			$Rediska = new \Redis();
+			$Rediska->connect('127.0.0.1',6379);
+			$data = $Logs->select(
+				[
+					'logs.log_id',
+					'logs.log_structured_data',
+					'logs.log_title',
+					'logs.log_part',
+					'logs.log_status',
+					'logs.created_at',
+					'projects.project_name'
+				])
+				->join('projects','logs.log_project_id = projects.project_id','LEFT')
+				->limit(100)
+				->orderBy('logs.log_id','DESC')
+				->find();
+			for($i=0,$imax=count($data); $i < $imax; $i++){
+				$data[$i]['log_structured_data'] = json_decode($data[$i]['log_structured_data'],true);
+			}
+			foreach ($data as $record){
+				$Rediska->rPush('list_logs',json_encode(
+					[   'log_id'=>$record['log_id'],
+						'project_name'=>$record['project_name'],
+						'title'=>$record['log_title'],
+						'time'=>$record['created_at'],
+						'part'=>$record['log_part'],
+						'status'=>$record['log_status']
+					],256));
+			}
+			
+			$counter = $Logs->select('log_id')->limit(1)->orderBy('log_id','DESC')->find();
+			$Rediska->set('total_log_rows',$counter[0]['log_id']);
+			$Rediska->set('global_service_status','stop');
+			$Rediska->close();
 			return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_admin'));
 		}
 		else

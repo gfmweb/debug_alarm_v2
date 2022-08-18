@@ -23,11 +23,17 @@ Vue.component('logs_table', {
 		'\t\t\t\t\t\t\t\t "\n' +
 		'\t\t\t\t\t\t>\n' +
 		'\t\t\t\t\t\t\t<td v-text="log.project_name" class="bg-danger" v-if="log.status==\'critical\'"></td>\n' +
-		'\t\t\t\t\t\t\t<td v-text="log.project_name" v-else></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.project_name" class="bg-info" v-if="log.part==\'start\' && log.status!==\'critical\'"></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.project_name" class="bg-primary" v-if="log.part==\'finish\' && log.status!==\'critical\'"></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.project_name" v-if="log.part==\'body\' && log.status!==\'critical\'"></td>\n' +
 		'\t\t\t\t\t\t\t<td v-text="log.title" class="bg-danger" v-if="log.status==\'critical\'" ></td>\n' +
-		'\t\t\t\t\t\t\t<td v-text="log.title" v-else></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.title" class="bg-info" v-if="log.part==\'start\' && log.status!==\'critical\'" ></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.title" class="bg-primary" v-if="log.part==\'finish\' && log.status!==\'critical\'" ></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.title" v-if="log.part==\'body\' && log.status!==\'critical\'" ></td>\n' +
 		'\t\t\t\t\t\t\t<td v-text="log.time" class="bg-danger" v-if="log.status==\'critical\'"></td>\n' +
-		'\t\t\t\t\t\t\t<td v-text="log.time" v-else></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.time" class="bg-info" v-if="log.part==\'start\' && log.status!==\'critical\'"></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.time" class="bg-primary" v-if="log.part==\'finish\' && log.status!==\'critical\'"></td>\n' +
+		'\t\t\t\t\t\t\t<td v-text="log.time" v-if="log.part==\'body\' && log.status!==\'critical\'"></td>\n' +
 		'\t\t\t\t\t\t</tr>\n' +
 		'\t\t\t\t\t</tbody>\n' +
 		'\t\t\t\t</table>'

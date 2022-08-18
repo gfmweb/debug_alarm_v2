@@ -28,6 +28,24 @@ class Logs extends Migration
 		        'type'                 => 'JSON',
 		        'null'                 =>  false,
 	        ],
+	        'log_title'=>
+		        [
+			        'type'                  => 'TEXT',
+			        'null'                  =>  true,
+		        ],
+	        'log_part'=>
+		        [
+			        'type'                  => 'VARCHAR',
+			        'constraint'            =>  16,
+			        'null'                  =>  false,
+		        ],
+			'log_status'=>
+			[
+				'type'                  => 'VARCHAR',
+				'constraint'            =>  32,
+				'null'                  =>  false,
+			],
+			
 	        'created_at datetime default current_timestamp',
 	        'updated_at datetime default current_timestamp on update current_timestamp',
         ]);

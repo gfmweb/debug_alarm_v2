@@ -76,7 +76,7 @@ $routes->post('/admin/setNewPassword','ADMIN\Admin::setNewPassword',['filter'=>'
 $routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAuth']);
 
 
-$routes->get('/user','USER\User::index',['filter'=>'UserAuth']);
+$routes->get('/user','USER\User::index');
 $routes->get('/user/mainMenu','USER\User::getMainMenu',['filter'=>'UserAuth']);
 $routes->get('/user/getLastLogs','USER\User::getLastLogs',['filter'=>'UserAuth']);
 $routes->get('/user/getLogInfoByID','USER\User::getLogInfoByID',['filter'=>'UserAuth']);

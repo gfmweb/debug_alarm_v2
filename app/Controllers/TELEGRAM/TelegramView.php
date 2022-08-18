@@ -9,6 +9,6 @@ class TelegramView extends BaseController
 {
     public function index()
     {
-       return view('user/user_index');
+       return view('user/user_index_telegram');
     }
 }

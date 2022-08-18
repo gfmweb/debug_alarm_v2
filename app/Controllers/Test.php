@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 
 use App\Controllers\TELEGRAM\TelegramAPI;
 use App\Models\AdminModel;
+use App\Models\LogModel;
 use CodeIgniter\API\ResponseTrait;
 
 class Test extends BaseController
@@ -16,11 +17,18 @@ class Test extends BaseController
 	
     public function index()
     {
-	 $result = Redis::updateLogList();
-	 echo '<pre>'; print_r($result); echo '</pre>';
+		
+	   $Redis = new Redis();
+	   $result = $Redis::updateLogList(null);
+	   echo '<pre>'; print_r($result); echo'</pre>';
+		
     }
 	
+	public function telega()
+	{
 	
+	
+	}
 	
 	
 }

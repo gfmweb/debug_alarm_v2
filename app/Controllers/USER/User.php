@@ -26,9 +26,9 @@ class User extends BaseController
 			[
 				'MenuButtons'=>
 					[
-						['name'=>'Real time','action'=>'real'],
-						['name'=>'Выборка','action'=>'prepareQuery'],
-						['name'=>'Сменить пароль','action'=>'settings'],
+						['name'=>'<i class="fa-solid fa-clock"></i>','action'=>'real'],
+						['name'=>'<i class="fa-solid fa-database"></i>','action'=>'prepareQuery'],
+						['name'=>'<i class="fa-solid fa-gear"></i>','action'=>'settings'],
 					],
 				'MenuHeaderText'=>'Основные действия ',
 				'PathToServer'=>$_SERVER['SERVER_NAME'],
@@ -118,9 +118,9 @@ class User extends BaseController
 		$Projects = model(ProjectModel::class);
 		$Logs = model(LogModel::class);
 		$idLog = $this->request->getVar('id');
-		if(!is_null($idLog))
+		if(!is_null($idLog)&&$idLog!=='')
 		{
-			$DBdata = $Logs->find((int)$idLog);
+			$DBdata = $Logs->getLogByID((int)$idLog);
 			return $this->respond($this->prepareForFront($DBdata),200);
 		}
 		$project_to_find = $this->request->getVar('project_name');
@@ -163,29 +163,17 @@ class User extends BaseController
 			if(strlen($finishSeconds)<2)$finishSeconds = '0'.$finishSeconds;
 			$finishDateTime.=':'.$finishSeconds;
 		}
-		// Варианты поиска
-		/**
-		 *  Есть дата начала + нет Даты конца + НЕТ Значения
-		 *
-		 *  Есть дата начала + нет Даты конца + ЕСТЬ Значение
-		 *
-		 *  Есть дата начала + Есть дата конца + Нет значения
-		 *
-		 *  Есть дата начала + Есть дата конца + ЕСТЬ значение
-		 *
-		 *  НЕТ даты начала +Есть дата конца + Нет Выборки
-		 *
-		 *  НЕТ даты начала + Есть дата конца + ЕСТЬ Выборка
-		 *
-		 *  НЕТ даты начала + Нет даты конца + Нет Выборки
-		 *
-		 *  НЕТ даты начала + Нет даты конца + ЕСТЬ Выборка
-		 *
-		 *
-		 * Приведение к виду как на сидере и отдача на фронт
-		 */
+		$queryRequest = [
+			'projects'=>$project_request,
+			'query'=>($needle!=='')?$needle:false,
+			'start'=>($startDateTime!=='')?$startDateTime:false,
+			'finish'=>($finishDateTime!=='')?$finishDateTime:false
+		];
 		
-		return $this->respond(['id'=>$idLog],200);
+		$result = $Logs->getLogsByQuery($queryRequest);
+		
+		
+		return $this->respond($this->prepareForFront($result),200);
 	}
 	
 	/**
@@ -194,6 +182,20 @@ class User extends BaseController
 	 */
 	private function prepareForFront(array $Data):array
 	{
-		return [];
+		if(isset($Data[0])&&is_array($Data[0])) {
+			for ($i = 0, $imax = count($Data); $i < $imax; $i++) {
+				$Data[$i]['log_structured_data'] = json_decode($Data[$i]['log_structured_data'], true);
+			}
+			$preparing = [];
+			foreach ($Data as $record) {
+				array_push($preparing, ['log_id' => $record['log_id'], 'project_name' => $record['project_name'], 'title' => $record['log_title'], 'time' => $record['created_at'], 'part' => $record['log_part'], 'status' => $record['log_status']]);
+				
+			}
+		}
+		else{
+			
+			$preparing[0] = (isset($Data['log_id']))?['log_id' => $Data['log_id'], 'project_name' => $Data['project_name'], 'title' => $Data['log_title'], 'time' => $Data['created_at'], 'part' => $Data['log_part'], 'status' => $Data['log_status']]:[];
+		}
+		return $preparing;
 	}
 }

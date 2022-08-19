@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Controllers\Redis;
 use CodeIgniter\Model;
 
 class UserModel extends Model
@@ -84,7 +85,9 @@ class UserModel extends Model
 	 */
 	public function preCreateUser(string $userName, string $login):int
 	{
-		return $this->insert(['user_name'=>$userName,'user_login'=>$login,'user_password'=>'temp'],true);
+		$userID = $this->insert(['user_name'=>$userName,'user_login'=>$login,'user_password'=>'temp'],true);
+		Redis::AddUser(['user_name'=>$userName,'user_login'=>$login,'user_id'=>$userID]);
+		return $userID;
 	}
 	
 	/**
@@ -100,6 +103,7 @@ class UserModel extends Model
 	{
 		$temporallyPassword = rand(11111,99999);
 		$this->update($userID,['user_telegram_id'=>$TelegramID,'user_password'=>password_hash($temporallyPassword,PASSWORD_DEFAULT)]);
+		
 		return $temporallyPassword;
 	}
 	

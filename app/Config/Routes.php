@@ -74,6 +74,7 @@ $routes->get('/admin/getHookAddress','ADMIN\Admin::getHookAddress',['filter'=>'A
 $routes->post('/admin/changeServiceMode','ADMIN\Admin::changeServiceMode',['filter'=>'AdminAuth']);
 $routes->post('/admin/setNewPassword','ADMIN\Admin::setNewPassword',['filter'=>'AdminAuth']);
 $routes->post('/admin/setWebHook','ADMIN\Admin::setWebHook',['filter'=>'AdminAuth']);
+$routes->post('/admin/redisInit','ADMIN\Admin::redisInit',['filter'=>'AdminAuth']);
 
 
 $routes->get('/user','USER\User::index');
@@ -86,6 +87,9 @@ $routes->post('/user/setNewPassword','USER\User::setNewPassword',['filter'=>'Use
 $routes->post('/user/LogDBQuery','USER\User::LogDBQuery',['filter'=>'UserAuth']);
 
 $routes->post('/loginByTelegram','TELEGRAM\TelegramView::login');
+
+$routes->post('/api/v1/log/(:any)','API\Log::createLog');
+$routes->get('/api/v1/log/(:any)','API\Log::getInstruction');
 
 /*
  * --------------------------------------------------------------------

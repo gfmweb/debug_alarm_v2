@@ -50,6 +50,11 @@
 					<h4 class="h4 text-center"><i class="fa-solid fa-gear"></i> Глобально сервис</h4>
 				</div>
 				<div class="card-body">
+					<template v-if="serviceMode=='stop'">
+						<div class="row">
+							<button class="btn btn-outline-primary mb-4" v-on:click="redisInit">Инициализация Redis</button>
+						</div>
+					</template>
 					<div class="form-check form-switch">
 						<div>
 							<input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" v-if="serviceMode=='stop'" v-on:change="onOffService">

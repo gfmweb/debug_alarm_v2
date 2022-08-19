@@ -160,7 +160,8 @@ class Admin extends BaseController
 	 */
 	public function createProject(){
 		$Projects = model(ProjectModel::class);
-		$Projects->createProject($this->request->getVar('project_name'));
+		$id = $Projects->createProject($this->request->getVar('project_name'));
+		Redis::ProjectAdd($Projects->where('project_id',$id)->first());
 	}
 	
 	
@@ -172,6 +173,7 @@ class Admin extends BaseController
 		$Project = model(ProjectModel::class);
 		$id = $this->request->getVar('project_id');
 		$Project->deleteProject($id);
+		Redis::ProjectDrop($id);
 		return $this->respond([$id],200);
 	}
 	
@@ -185,6 +187,7 @@ class Admin extends BaseController
 		$projectSecret = $this->request->getVar('project_secret');
 		$Projects = model(ProjectModel::class);
 		$Projects->editProject($projectID,$projectName,$projectSecret);
+		Redis::ProjectUpdate($projectID,$projectName,$projectSecret);
 		return $this->respond('ok',200);
 	}
 	
@@ -197,7 +200,9 @@ class Admin extends BaseController
 		$login = $this->request->getVar('user_login');
 		$UsersModel = model(UserModel::class);
 		$Redis = Redis::getInstance();
-		$Redis->set($login,json_encode(['user_id'=>$UsersModel->preCreateUser($name,$login)],256),300);
+		$userID = $UsersModel->preCreateUser($name,$login);
+		$Redis->set($login,json_encode(['user_id'=>$userID],256),300);
+		Redis::UserAdd(['user_name'=>$name,'user_login'=>$login,'user_id'=>$userID]);
 		return $this->respond(['ok'],200);
 	}
 	
@@ -209,6 +214,7 @@ class Admin extends BaseController
 		$user_id = $this->request->getVar('user_id');
 		$UsersModel = model(UserModel::class);
 		$UsersModel->deleteUser($user_id);
+		Redis::UserDrop($user_id);
 		return $this->respond('ok',200);
 	}
 	
@@ -276,5 +282,11 @@ class Admin extends BaseController
 	{
 		$link = 'https://api.telegram.org/bot'.TELEGRAM.'/setWebhook?url=https://'.$_SERVER['SERVER_NAME'].'/'.$this->request->getVar('route');
 		return $this->respond($link,200);
+	}
+	
+	public function redisInit()
+	{
+		Redis::reInit();
+		return $this->respond('ok',200);
 	}
 }

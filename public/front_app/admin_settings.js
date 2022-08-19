@@ -15,6 +15,9 @@ const Settings = new Vue({
 		hookResult:null
 	},
 	methods:{
+		redisInit(){
+			axios.post('/admin/redisInit').then(res=>{alert('Redis ключи проинициализированы')})
+		},
 		dropPasswordErrors(){return this.passwordResults = null},
 		changeInputTypes(){
 			if(this.inputstypes == 'password'){return this.inputstypes='text'}

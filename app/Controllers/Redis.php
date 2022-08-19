@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\LogModel;
+use App\Models\ProjectModel;
+use App\Models\UserModel;
 
 /**
  *  Очень неудачный класс Redis
@@ -23,6 +25,191 @@ class Redis extends BaseController
 	{
 		if(is_null (self::$Rediska)){self::initial();}
 		return self::$Rediska;
+	}
+	
+	/**
+	 * @return void Реинициализация ключей
+	 * @throws \RedisException
+	 */
+	public static function reInit()
+	{
+		self::initial();
+		if(!self::$Rediska->exists('service_max_requests')) self::$Rediska->set('service_max_requests',0);
+		if(!self::$Rediska->exists('total_log_rows')) {
+			$Logs = model(LogModel::class);
+			$lastID = $Logs->select('log_id')->orderBy('log_id','DESC')->first();
+			$lastID = (isset($lastID['log_id']))?$lastID['log_id']:0;
+			self::$Rediska->set('total_log_rows',$lastID);
+		}
+		if(!self::$Rediska->exists('service_at_work')) self::$Rediska->set('service_at_work','stop');
+		if(!self::$Rediska->exists('list_logs')) $Logs->afterSeed();
+		if(!self::$Rediska->exists('log_service_users')){
+			$Users = model(UserModel::class);
+			$users = $Users->getAnotherUsers(0);
+			foreach ($users as $user){
+				self::$Rediska->lpush('log_service_users',json_encode($user,256));
+			}
+		}
+		if(!self::$Rediska->exists('log_service_projects')){
+			$Projects = model(ProjectModel::class);
+			foreach ($Projects->getAll() as $item){
+				self::$Rediska->lpush('log_service_projects',json_encode($item,256));
+			}
+		}
+	}
+	
+	/**
+	 * Действия с пользователями
+	 */
+	
+	/**
+	 * @param array $User ['user_name'=>' ','user_login'=>' ','user_id'=>' ' ]
+	 * @return bool Добавит пользователя в список
+	 */
+	public static function UserAdd(array $User):bool
+	{
+		self::initial();
+		self::$Rediska->lpush('log_service_users',json_encode($User,256));
+		return true;
+	}
+	
+	public static function UserUpdate(int $userID, int $TelegramID)
+	{
+		self::initial();
+		if(!self::$Rediska->exists('log_service_users')) return false;
+		$usersCount = self::$Rediska->llen('log_service_users');
+		for($i = 0,$iMax=$usersCount; $i<$iMax; $i++){
+			$user = json_decode(self::$Rediska->lIndex('log_service_users',$i),true);
+			if($user['user_id'] == $userID){
+				$user['user_telegram_id'] = $TelegramID;
+				self::$Rediska->lset('log_service_users',$i,json_encode($user,256));
+			}
+		}
+		return true;
+	}
+	
+	public static function UserGetByLogin(array $userLogin):array
+	{
+		self::initial();
+		$usersCount = self::$Rediska->llen('log_service_users');
+		$results = [];
+		for($i = 0,$iMax=$usersCount; $i<$iMax; $i++){
+			$user = json_decode(self::$Rediska->lIndex('log_service_users',$i),true);
+			foreach ($userLogin as $userLog) {
+				if ($user['user_login'] == $userLog) {
+					$results[] = json_decode(self::$Rediska->lIndex('log_service_users', $i), true);
+				}
+			}
+		}
+		return $results;
+	}
+	
+	public static function UsersGetAll():array
+	{
+		self::initial();
+		$usersCount = self::$Rediska->llen('log_service_users');
+		for($i = 0,$iMax=$usersCount; $i<$iMax; $i++){
+			$users[] = json_decode(self::$Rediska->lIndex('log_service_users',$i),true);
+		}
+		return $users;
+	}
+	
+	public static function UserDrop(int $userID):bool
+	{
+		self::initial();
+		$usersCount = self::$Rediska->llen('log_service_users');
+		for($i = 0,$iMax=$usersCount; $i<$iMax; $i++){
+			$user = json_decode(self::$Rediska->lIndex('log_service_users',$i),true);
+			if($user['user_id'] == $userID){
+				$record = self::$Rediska->lIndex('log_service_users',$i);
+				self::$Rediska->lRem('log_service_users',$record);
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Действия с проектами
+	 */
+	
+	
+	/**
+	 * @param array $Project ['project_id','project_name','project_secret']
+	 * @return bool Добавит проект для логирования
+	 */
+	public static function ProjectAdd(array $Project):bool
+	{
+		self::initial();
+		self::$Rediska->lpush('log_service_projects',json_encode($Project,256));
+		return true;
+	}
+	
+	public static function ProjectUpdate(int $ProjectID, string $ProjectName, string $ProjectSecret):bool
+	{
+		self::initial();
+		$projectsCount = self::$Rediska->llen('log_service_projects');
+		for ($i=0,$iMax=$projectsCount; $i < $iMax; $i++){
+			$project = json_decode(self::$Rediska->lIndex('log_service_projects',$i),true);
+			if($project['project_id'] == $ProjectID){
+				$project['project_name'] = $ProjectName;
+				$project['project_secret'] = $ProjectSecret;
+				self::$Rediska->lset('log_service_projects',$i,json_encode($project,256));
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static function ProjectGet(int $ProjectID):array
+	{
+		self::initial();
+		$projectsCount = self::$Rediska->llen('log_service_projects');
+		for ($i=0,$iMax=$projectsCount; $i < $iMax; $i++){
+			$project = json_decode(self::$Rediska->lIndex('log_service_projects',$i),true);
+			if($project['project_id'] == $ProjectID){
+				return $project;
+			}
+		}
+		return [];
+	}
+	
+	public static function ProjectGetBySecret(string $ProjectSecret):array
+	{
+		self::initial();
+		$projectsCount = self::$Rediska->llen('log_service_projects');
+		for ($i=0,$iMax=$projectsCount; $i < $iMax; $i++){
+			$project = json_decode(self::$Rediska->lIndex('log_service_projects',$i),true);
+			if($project['project_secret'] == $ProjectSecret){
+				return $project;
+			}
+		}
+		return [];
+	}
+	
+	public static function ProjectDrop(int $ProjectID):bool
+	{
+		self::initial();
+		$projectsCount = self::$Rediska->llen('log_service_projects');
+		for ($i=0,$iMax=$projectsCount; $i < $iMax; $i++){
+			$project = json_decode(self::$Rediska->lIndex('log_service_projects',$i),true);
+			if($project['project_id'] == $ProjectID){
+				$record = self::$Rediska->lIndex('log_service_projects',$i);
+				self::$Rediska->lRem('log_service_projects',$record);
+			}
+		}
+		return true;
+	}
+	
+	
+	/**
+	 * Действия с логами
+	 */
+	public function AddNewLog(array $Data):int
+	{
+		self::initial();
+		$id = 0;
+		
+		return 	$id;
 	}
 	
 }

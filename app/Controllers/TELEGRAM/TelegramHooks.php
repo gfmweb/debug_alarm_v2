@@ -3,6 +3,7 @@
 namespace App\Controllers\TELEGRAM;
 
 use App\Controllers\BaseController;
+use App\Controllers\Redis;
 use App\Models\AdminModel;
 use App\Models\UserModel;
 
@@ -35,6 +36,7 @@ class TelegramHooks extends BaseController
 			   $pretendent = $Users->find(1);
 			   if(is_null($pretendent['user_telegram_id'])) { // Проверяем что у пользователя 1 еще нет телеграмID
 				   $Users->update(1, ['user_telegram_id'=>(int)$sender]);
+				   Redis::UserUpdate(1,(int)$sender);
 				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация почти завершена'.PHP_EOL.'Зайдите в админку</b>',false);
 			   }
 		   }
@@ -45,6 +47,7 @@ class TelegramHooks extends BaseController
 			   if(is_null($pretendent['user_telegram_id'])) { // Проверяем что у пользователя еще нет телеграмID
 				   $temporary = rand(1111,9999);
 				   $Users->update((int)$user_array[1], ['user_telegram_id'=>(int)$sender,'user_password'=>password_hash($temporary,PASSWORD_DEFAULT)]);
+				   Redis::UserUpdate($user_array[1],(int)$sender);
 				   TelegramAPI::sendMessage((int)$sender,'<b>Регистрация завершена'.PHP_EOL.'Зайдите в лк на сайте</b>'.PHP_EOL.'Ваш временный пароль: <b>'.$temporary.'</b>',false);
 			   }
 		   }

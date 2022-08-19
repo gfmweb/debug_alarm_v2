@@ -353,7 +353,6 @@ class Redis extends BaseController
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
 		
-		
 		$result['id'] = $Data['log_record']['log_id'];
 		$timers = self::$Rediska->llen('timer_check');
 		$current_timer_found = false;
@@ -426,7 +425,6 @@ class Redis extends BaseController
 			
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
-		
 		
 		$result['id'] = $Data['log_record']['log_id'];
 		$timers = self::$Rediska->llen('timer_check');

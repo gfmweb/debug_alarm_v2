@@ -37,7 +37,10 @@ class Log extends BaseController
 		$data = json_decode($data,true);
 		if(!isset($data['data'])) return ['valid'=>false,'errors'=>'Empty LOG','log_record'=>[]];
 		$data['log_structured_data']=$data['data'];
+		$data['project_name'] = $Client['project_name'];
+		$data['project_id'] = $Client['project_id'];
 		unset($data['data']);
+		
 		$data['recipients'] = (!isset($data['recipients'])||!is_array($data['recipients'])) ? Redis::UsersGetAll():Redis::UserGetByLogin($data['recipients']);
 		if(!isset($data['alert_mode'])) $data['alert_mode']='hide';
 		if(!in_array($data['alert_mode'],['hide','silent','alarm'])) $data['alert_mode']='hide';
@@ -72,18 +75,20 @@ class Log extends BaseController
 	 
 		
 		if($data['log_record']['type']=='block' && $data['log_record']['part']=='start'){
-		
+			$result = Redis::BlockStartLog($data);
 		}
 	    elseif($data['log_record']['type']=='block' && $data['log_record']['part']=='body'){
-		
+		    $result = Redis::BlockBodyLog($data);
 	    }
 		elseif($data['log_record']['type']=='block' && $data['log_record']['part']=='finish'){
-		
+			$result = Redis::BlockFinishLog($data);
 		}
 		else{
-		
+			$result = Redis::SingleLog($data);
 		}
-		return $this->respond($data,200);
+	 
+		return ($result['id']!==0)? $this->respond(['store'=>'ok','log_id'=>$result['id'],'data'=>$data],200):$this->respond(['store'=>false,'errors'=>$result['errors'],'data'=>$data],400);
+		
     }
 	
 	public function getInstruction()

@@ -204,12 +204,73 @@ class Redis extends BaseController
 	/**
 	 * Действия с логами
 	 */
-	public function AddNewLog(array $Data):int
+	public static function SingleLog(array $Data):array
 	{
 		self::initial();
-		$id = 0;
-		
-		return 	$id;
+		self::$Rediska->incr('total_log_rows');
+		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
+		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		if(self::$Rediska->llen('list_logs')>100){
+			self::$Rediska->rpop('list_logs');
+		}
+		$result['id'] = $Data['log_record']['log_id'];
+		$result['errors']='';
+		return 	$result;
 	}
+	
+	public static function BlockStartLog(array $Data):array
+	{
+		self::initial();
+		$result['id'] = 0;
+		$result['errors']='';
+		return 	$result;
+	}
+	
+	public static function BlockBodyLog(array $Data):array
+	{
+		self::initial();
+		$result['id'] = 0;
+		$result['errors']='';
+		return 	$result;
+	}
+	
+	public static function BlockFinishLog(array  $Data):array
+	{
+		self::initial();
+		$result['id'] = 0;
+		$result['errors']='';
+		return 	$result;
+	}
+	
+	
 	
 }

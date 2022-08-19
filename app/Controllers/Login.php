@@ -79,9 +79,9 @@ class Login extends BaseController
 	}
 	
 	/**
-	 * @return string Проверка логина и пароля пользователя для доступа к просмотру логов
+	 * @return \CodeIgniter\HTTP\Response Проверка логина и пароля пользователя для доступа к просмотру логов
 	 */
-	public function userLogPas():string
+	public function userLogPas()
 	{
 		$login = $this->request->getVar('login');
 		$password = $this->request->getVar('password');

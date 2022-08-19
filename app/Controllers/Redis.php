@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Controllers\TELEGRAM\TelegramAPI;
 use App\Models\LogModel;
 use App\Models\ProjectModel;
 use App\Models\UserModel;
@@ -217,12 +218,12 @@ class Redis extends BaseController
 				'part'=>$Data['log_record']['part'],
 				'status'=>$Data['log_record']['status'],
 				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				
 			]));
 		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
 			[
 				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
+				'project_id'=>$Data['log_record']['project_id'],
 				'title'=>$Data['log_record']['title'],
 				'part'=>$Data['log_record']['part'],
 				'status'=>$Data['log_record']['status'],
@@ -237,11 +238,25 @@ class Redis extends BaseController
 				'part'=>$Data['log_record']['part'],
 				'status'=>$Data['log_record']['status'],
 				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				
 			]));
-		if(self::$Rediska->llen('list_logs')>100){
-			self::$Rediska->rpop('list_logs');
+		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
+		
+		if($Data['log_record']['alert_mode']=='silent'){
+			foreach ($Data['log_record']['recipients'] as $user)
+			{
+				
+				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
+			}
 		}
+		elseif ($Data['log_record']['alert_mode']=='alarm'){
+			foreach ($Data['log_record']['recipients'] as $user)
+			{
+				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+			}
+		}
+		
+		
 		$result['id'] = $Data['log_record']['log_id'];
 		$result['errors']='';
 		return 	$result;
@@ -250,7 +265,53 @@ class Redis extends BaseController
 	public static function BlockStartLog(array $Data):array
 	{
 		self::initial();
-		$result['id'] = 0;
+		self::$Rediska->incr('total_log_rows');
+		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
+		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			]));
+		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_id'=>$Data['log_record']['project_id'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			]));
+		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
+		
+		if($Data['log_record']['alert_mode']=='silent'){
+			foreach ($Data['log_record']['recipients'] as $user)
+			{
+				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие начала выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
+			}
+		}
+		elseif ($Data['log_record']['alert_mode']=='alarm'){
+			foreach ($Data['log_record']['recipients'] as $user)
+			{
+				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие начала выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+			}
+		}
+		$result['id'] = $Data['log_record']['log_id'];
+		$result['block_id'] = time();
+		self::$Rediska->lpush('timer_check',json_encode(['project_id'=>$Data['log_record']['project_id'],'block_id'=>$result['block_id'],'ttl'=>$Data['log_record']['timer_check'],'ttl_etalon'=>$Data['log_record']['timer_check']]));
 		$result['errors']='';
 		return 	$result;
 	}
@@ -258,16 +319,148 @@ class Redis extends BaseController
 	public static function BlockBodyLog(array $Data):array
 	{
 		self::initial();
-		$result['id'] = 0;
-		$result['errors']='';
+		self::$Rediska->incr('total_log_rows');
+		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
+		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			
+			]));
+		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_id'=>$Data['log_record']['project_id'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			
+			]));
+		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
+		
+		
+		$result['id'] = $Data['log_record']['log_id'];
+		$timers = self::$Rediska->llen('timer_check');
+		$current_timer_found = false;
+		for($i=0,$iMax=$timers; $i < $iMax; $i++)
+		{
+			$current_timer = json_decode(self::$Rediska->lIndex('timer_check',$i),true);
+			if($current_timer['block_id'] == $Data['log_record']['block_id']){
+				$current_timer_found = true;
+				$current_timer['ttl']=$current_timer['ttl_etalon'];
+				self::$Rediska->lset('timer_check',$i,json_encode($current_timer));
+				break;
+			}
+		}
+		if($current_timer_found) {
+			if($Data['log_record']['alert_mode']=='silent'){
+				foreach ($Data['log_record']['recipients'] as $user)
+				{
+					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие продолжение выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
+				}
+			}
+			elseif ($Data['log_record']['alert_mode']=='alarm'){
+				foreach ($Data['log_record']['recipients'] as $user)
+				{
+					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие продолжение выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+				}
+			}
+			$result['block_id'] = $current_timer['block_id'];
+			$result['errors'] = '';
+		}
+		else{
+			$result['id'] = 0;
+			$result['errors'] = 'Can not find this block';
+		}
 		return 	$result;
 	}
 	
 	public static function BlockFinishLog(array  $Data):array
 	{
 		self::initial();
-		$result['id'] = 0;
-		$result['errors']='';
+		self::$Rediska->incr('total_log_rows');
+		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
+		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			
+			]));
+		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_id'=>$Data['log_record']['project_id'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+			]));
+		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
+			[
+				'log_id'=>$Data['log_record']['log_id'],
+				'project_name'=>$Data['log_record']['project_name'],
+				'title'=>$Data['log_record']['title'],
+				'part'=>$Data['log_record']['part'],
+				'status'=>$Data['log_record']['status'],
+				'time'=>date('Y-m-d H:i:s'),
+			
+			]));
+		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
+		
+		
+		$result['id'] = $Data['log_record']['log_id'];
+		$timers = self::$Rediska->llen('timer_check');
+		$current_timer_found = false;
+		for($i=0,$iMax=$timers; $i < $iMax; $i++)
+		{
+			$current_timer = json_decode(self::$Rediska->lIndex('timer_check',$i),true);
+			if($current_timer['block_id'] == $Data['log_record']['block_id']){
+				$current_timer_found = true;
+				$row = self::$Rediska->lIndex('timer_check',$i);
+				self::$Rediska->lrem('timer_check',$row);
+				break;
+			}
+		}
+		if($current_timer_found) {
+			if($Data['log_record']['alert_mode']=='silent'){
+				foreach ($Data['log_record']['recipients'] as $user)
+				{
+					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие окончания выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
+				}
+			}
+			elseif ($Data['log_record']['alert_mode']=='alarm'){
+				foreach ($Data['log_record']['recipients'] as $user)
+				{
+					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие окончания выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+				}
+			}
+			$result['block_id'] = $current_timer['block_id'];
+			$result['errors'] = '';
+		}
+		else{
+			$result['id'] = 0;
+			$result['errors'] = 'Can not find this block';
+		}
 		return 	$result;
 	}
 	

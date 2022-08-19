@@ -55,6 +55,8 @@ class Log extends BaseController
 		if(!isset($data['title']) && $data['part']=='start' && $data['type']=='block') $data['title'] = 'Начальная запись лога с сервиса '.$Client['project_name'];
 		if(!isset($data['title']) && $data['part']=='body' && $data['type']=='block') $data['title'] = 'Продолжение запись лога с сервиса '.$Client['project_name'];
 		if(!isset($data['title']) && $data['part']=='finish' && $data['type']=='block') $data['title'] = 'Конечная запись лога с сервиса '.$Client['project_name'];
+		if($data['type']=='block'&&(!isset($data['timer_check'])||(!is_int($data['timer_check'])))) $data['timer'] = 60;
+		if($data['type']=='block' && in_array($data['part'],['body','finish']) && !isset($data['block_id'])) return ['valid'=>false,'errors'=>'missing block_id','log_record'=>[]];
 		
 		if(!isset($data['status'])) $data['status']='normal';
 		
@@ -70,7 +72,6 @@ class Log extends BaseController
 		$request = $this->request->getUri()->getSegments();
 		if(!isset($request[3])) return $this->respond('Bad request. No SecretKey detected',400);
 		$data = self::ValidateRequest($this->request->getVar('log'),$request[3]);
-	 
 		if(!$data['valid']) return $this->respond('Bad request OR Auth error'.PHP_EOL.$data['errors'],400);
 	 
 		
@@ -87,13 +88,12 @@ class Log extends BaseController
 			$result = Redis::SingleLog($data);
 		}
 	 
-		return ($result['id']!==0)? $this->respond(['store'=>'ok','log_id'=>$result['id'],'data'=>$data],200):$this->respond(['store'=>false,'errors'=>$result['errors'],'data'=>$data],400);
+		return ($result['id']!==0)? $this->respond(['store'=>'ok','result'=>$result,'data'=>$data],200):$this->respond(['store'=>false,'errors'=>$result['errors'],'data'=>$data],400);
 		
     }
 	
 	public function getInstruction()
 	{
-		
 		if(!self::GetServiceStatus()) return $this->respond('503 Service Unavailable',503);
 		$request = $this->request->getUri()->getSegments();
 		if(!isset($request[3])) return $this->respond('Bad request. No SecretKey detected',400);

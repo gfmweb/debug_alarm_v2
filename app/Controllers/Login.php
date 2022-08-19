@@ -14,10 +14,10 @@ class Login extends BaseController
 {
 	use ResponseTrait;
 	
-	public function index()
-	{
-		return view('login');
-	}
+	/**
+	 * @return string Загрузка фронтовой части страницы
+	 */
+	public function index(){return view('login');}
 	
 	
 	/**
@@ -68,34 +68,31 @@ class Login extends BaseController
 			$this->session->set('Login',true);
 			$this->session->set('admin',$admin);
 			return $this->respond(['errors'=>['Deployment mode'],'data'=>'/CreateAdmin'],200);
-			
 		}
 		else{
 			$Redis = Redis::getInstance();
 			$key = rand(1111,9999);
 			$messageID = TelegramAPI::sendMessage($admin['user_telegram_id'],'Код подтверждения входа в админку'.PHP_EOL.'<b>'.$key.'</b>',false);
 			$Redis->set('verify_code_'.$admin['user_telegram_id'],json_encode(['key'=>$key,'message_id'=>$messageID['message_id'],'target'=>'admin']),60);
-			
 		}
 		return $this->respond(['errors'=>null,'data'=>$admin],200);
 	}
 	
-	public function userLogPas()
+	/**
+	 * @return string Проверка логина и пароля пользователя для доступа к просмотру логов
+	 */
+	public function userLogPas():string
 	{
 		$login = $this->request->getVar('login');
 		$password = $this->request->getVar('password');
 		$Users = model(UserModel::class);
 		$user = $Users->getUserByLogin($login);
-		if(!isset($user['user_password'])||!password_verify($password,$user['user_password'])){
-			return $this->respond(['errors'=>['Не верное имя пользователя или пароль'],'data'=>null],200);
-		}
-		
+		if(!isset($user['user_password'])||!password_verify($password,$user['user_password'])){return $this->respond(['errors'=>['Не верное имя пользователя или пароль'],'data'=>null],200);}
 		else{
 			$Redis = Redis::getInstance();
 			$key = rand(1111,9999);
 			$messageID = TelegramAPI::sendMessage($user['user_telegram_id'],'Код подтверждения входа к логам'.PHP_EOL.'<b>'.$key.'</b>',false);
 			$Redis->set('verify_code_'.$user['user_telegram_id'],json_encode(['key'=>$key,'message_id'=>$messageID['message_id'],'target'=>'user']),60);
-			
 		}
 		return $this->respond(['errors'=>null,'data'=>$user],200);
 	}
@@ -111,23 +108,17 @@ class Login extends BaseController
 		$code = $this->request->getVar('code');
 		$Redis = Redis::getInstance();
 		if(!$Redis->exists('verify_code_'.$telegram_id))
-		{
-			return $this->respond(['errors'=>['Время на ожидание кода истекло авторизируйтесь заного'],'data'=>null],200);
-		}
+		{return $this->respond(['errors'=>['Время на ожидание кода истекло авторизируйтесь заного'],'data'=>null],200);}
 		$verify = json_decode($Redis->get('verify_code_'.$telegram_id),true);
 		$Redis->del('verify_code_'.$telegram_id);
-		if((int)$code !==(int)$verify['key']){
-			return $this->respond(['errors'=>['Код подтверждения введен неверно '],'data'=>null],200);
-		}
+		if((int)$code !==(int)$verify['key']){return $this->respond(['errors'=>['Код подтверждения введен неверно '],'data'=>null],200);}
 		TelegramAPI::deleteMessage($telegram_id,$verify['message_id']);
 		$this->session->set('Login',true);
 		if($verify['target']=='admin'){
 			$this->session->set('admin',$Users->getUserByTelegram((int)$telegram_id,true));
 			$this->session->set('user',$Admins->getAdminByLogin($_SESSION['admin']['user_name']));
 		}
-		else{
-			$this->session->set('user',$Users->getUserByTelegram((int)$telegram_id,false));
-		}
+		else{$this->session->set('user',$Users->getUserByTelegram((int)$telegram_id,false));}
 		return ($verify['target']=='admin')?$this->respond(['errors'=>null,'data'=>'/admin']):$this->respond(['errors'=>null,'data'=>'/user']);
 	}
 	
@@ -136,64 +127,22 @@ class Login extends BaseController
 	 * @return \CodeIgniter\HTTP\Response ссылка на начало общения с роботом
 	 */
 	public function generateRegisterLinkForUser(int $userID)
-	{
-
-		return $this->respond('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$userID),200);
-		
-	}
+	{return $this->respond('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$userID),200);}
 	
 	
 	/**
-	 * @return \CodeIgniter\HTTP\RedirectResponse|void Редирект либо на подключение первого администратора либо на страницу входа
+	 * @return \CodeIgniter\HTTP\RedirectResponse|void Редирект либо на подключение первого администратора + определение Redis ключей либо на страницу входа
 	 */
 	public function FirstAdminCreate()
 	{
-		
 		$Users = model(UserModel::class);
 		$user = $Users->first();
 		if(is_null($user['user_telegram_id'])){
 			$Logs = model(LogModel::class);
-			$Rediska = new \Redis();
-			$Rediska->connect('127.0.0.1',6379);
-			$data = $Logs->select(
-				[
-					'logs.log_id',
-					'logs.log_structured_data',
-					'logs.log_title',
-					'logs.log_part',
-					'logs.log_status',
-					'logs.created_at',
-					'projects.project_name'
-				])
-				->join('projects','logs.log_project_id = projects.project_id','LEFT')
-				->limit(100)
-				->orderBy('logs.log_id','DESC')
-				->find();
-			for($i=0,$imax=count($data); $i < $imax; $i++){
-				$data[$i]['log_structured_data'] = json_decode($data[$i]['log_structured_data'],true);
-			}
-			foreach ($data as $record){
-				$Rediska->rPush('list_logs',json_encode(
-					[   'log_id'=>$record['log_id'],
-						'project_name'=>$record['project_name'],
-						'title'=>$record['log_title'],
-						'time'=>$record['created_at'],
-						'part'=>$record['log_part'],
-						'status'=>$record['log_status']
-					],256));
-			}
-			
-			$counter = $Logs->select('log_id')->limit(1)->orderBy('log_id','DESC')->find();
-			$Rediska->set('total_log_rows',$counter[0]['log_id']);
-			$Rediska->set('global_service_status','stop');
-			$Rediska->set('service_max_requests',0);
-			$Rediska->close();
+			$Logs->afterSeed();
 			return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_admin'));
 		}
-		else
-		{
-			return redirect()->to('/login');
-		}
+		else{return redirect()->to('/login');}
 	}
 	
 	/**
@@ -201,29 +150,20 @@ class Login extends BaseController
 	 * Выход из сервиса
 	 */
 	public function logOut()
-	{
-		$this->session->destroy();
-		return  redirect()->to('/login');
-	}
+	{$this->session->destroy();	return  redirect()->to('/login');}
 	
-	
+
 	/**
 	 * @return \CodeIgniter\HTTP\RedirectResponse|string Определяет, нужно ли регистрировать пользователя и перенаправляет его в случае успеха
 	 */
 	public function RegisterNewUser()
 	{
 		$income = $this->request->getUri()->getSegments();
-		if(!$income[1]){
-			return redirect()->to('/login');
-		}
+		if(!$income[1]){return redirect()->to('/login');}
 		$Redis = Redis::getInstance();
-		if(!$Redis->exists($income[1])){
-			return view('errors/fail_to_register');
-		}
+		if(!$Redis->exists($income[1])){return view('errors/fail_to_register');}
 		$data = json_decode($Redis->get($income[1]),true);
-		
 		$Redis->del($income[1]);
 		return redirect()->to('https://t.me/'.BOT_NAME.'?start='.base64_encode('create_user/id='.$data['user_id']));
-		
 	}
 }

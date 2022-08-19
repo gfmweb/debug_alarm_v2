@@ -11,7 +11,7 @@ const Connect = new Vue({
 	methods:{
 		connecttowss: function(pathToSRV,userIdentity){
 			const self = this;
-			self.Socket =  new WebSocket('wss://'+pathToSRV+':27800?user='+userIdentity),
+			self.Socket =  new WebSocket('wss://'+pathToSRV+':27800?user='+userIdentity+'telegram'),
 				self.Socket.onmessage = function (event) {
 					let income = JSON.parse(event.data)
 					if(income.action=='Ping') {

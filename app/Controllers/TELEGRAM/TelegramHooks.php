@@ -6,6 +6,10 @@ use App\Controllers\BaseController;
 use App\Models\AdminModel;
 use App\Models\UserModel;
 
+
+/**
+ * Точка входа для WebHooks от Телеграм
+ */
 class TelegramHooks extends BaseController
 {
     public function index()

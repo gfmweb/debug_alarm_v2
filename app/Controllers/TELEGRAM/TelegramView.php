@@ -6,14 +6,23 @@ use App\Controllers\BaseController;
 use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
 
+/**
+ * Обработчик для приложения WebApp Telegram
+ */
 class TelegramView extends BaseController
 {
 	use ResponseTrait;
-    public function index()
-    {
-       return view('user/user_index_telegram');
-    }
 	
+	/**
+	 * @return string Основной вид
+	 */
+    public function index()
+    {      return view('user/user_index_telegram');   }
+	
+	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Метод авторизации по телеграм_ID
+	 */
 	public function login()
 	{
 		$telegram_id = $this->request->getVar('id');
@@ -28,9 +37,11 @@ class TelegramView extends BaseController
 		}
 	}
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Основное меню телеграм приложения
+	 */
 	public function getMainMenu(){
 		$user = $this->session->get('user');
-		
 		return $this->respond(
 			[
 				'MenuButtons'=>

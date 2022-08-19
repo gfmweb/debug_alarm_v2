@@ -13,15 +13,20 @@ use CodeIgniter\API\ResponseTrait;
 class User extends BaseController
 {
 	use ResponseTrait;
-    public function index()
-    {
-       return view('user/user_index');
-    }
 	
+	/**
+	 * @return string Загрузка фронтовой части
+	 */
+    public function index():string
+    {  return view('user/user_index'); }
+	
+	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Основное меню пользователя
+	 */
 	public function getMainMenu()
 	{
 		$user = $this->session->get('user');
-		
 		return $this->respond(
 			[
 				'MenuButtons'=>
@@ -36,6 +41,9 @@ class User extends BaseController
 			],200);
 	}
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response 100 последних записей (для меню просмотр в режиме реального времени)
+	 */
 	public function getLastLogs()
 	{
 		$Projects = model(ProjectModel::class);
@@ -61,6 +69,9 @@ class User extends BaseController
 		return $this->respond($response,200);
 	}
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Тело конкретной записи лога по его ID (при нажатии на строку с логом в модалке опображается именно это)
+	 */
 	public function getLogInfoByID()
 	{
 		$id = $this->request->getVar('id');
@@ -69,6 +80,9 @@ class User extends BaseController
 		return $this->respond($this->arrayToHTML(json_decode($log['log_structured_data'],true)),200);
 	}
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Рассылка сообщений пользователям
+	 */
 	public function sendAlarm()
 	{
 		$UserModel = model(UserModel::class);
@@ -94,6 +108,10 @@ class User extends BaseController
 		return $this->respond('ok',200);
 	}
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Смена пароля пользователя (при этом не сменится пароль администартора)
+	 * @throws \ReflectionException
+	 */
 	public function setNewPassword()
 	{
 		$response['classs']='bg-danger';
@@ -109,10 +127,12 @@ class User extends BaseController
 		$response['classs']='bg-success';
 		$response['text']='Ващ  пароль успешно изменён';
 		return $this->respond($response,200);
-		
-		
-		
 	}
+	
+	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Обработчик запроса формы поиска по БД
+	 */
 	public function LogDBQuery()
 	{
 		$Projects = model(ProjectModel::class);
@@ -135,17 +155,10 @@ class User extends BaseController
 			}
 		}
 		else{
-			foreach ($projects as $project) {
-				array_push($project_request, $project['project_id']);
-			}
-			
+			foreach ($projects as $project) {array_push($project_request, $project['project_id']);}
 		}
-		// Собираем часть запроса относящегося к искомому значению
 		$needle = $this->request->getVar('query');
-		if($needle!==''){ // Добавить поиск значения
 		
-		}
-
 		$startDateTime = $this->request->getVar('starttime');
 		$startDateTime = str_replace('T',' ',$startDateTime);
 		if($startDateTime!==''){ //Работаем по ветке есть начало
@@ -169,10 +182,7 @@ class User extends BaseController
 			'start'=>($startDateTime!=='')?$startDateTime:false,
 			'finish'=>($finishDateTime!=='')?$finishDateTime:false
 		];
-		
 		$result = $Logs->getLogsByQuery($queryRequest);
-		
-		
 		return $this->respond($this->prepareForFront($result),200);
 	}
 	
@@ -189,11 +199,9 @@ class User extends BaseController
 			$preparing = [];
 			foreach ($Data as $record) {
 				array_push($preparing, ['log_id' => $record['log_id'], 'project_name' => $record['project_name'], 'title' => $record['log_title'], 'time' => $record['created_at'], 'part' => $record['log_part'], 'status' => $record['log_status']]);
-				
 			}
 		}
 		else{
-			
 			$preparing[0] = (isset($Data['log_id']))?['log_id' => $Data['log_id'], 'project_name' => $Data['project_name'], 'title' => $Data['log_title'], 'time' => $Data['created_at'], 'part' => $Data['log_part'], 'status' => $Data['log_status']]:[];
 		}
 		return $preparing;

@@ -66,23 +66,7 @@ class AdminModel extends Model
 			->first();
 	}
 	
-	/**
-	 * @param int $currentAdminID ID текущего Админа
-	 * @return array Вернет всех админов кроме того кто это запросил
-	 */
-	public function getAllAnotherAdmins(int $currentAdminID):array
-	{
-		return $this->select(
-			[   'admins.admin_id',
-				'admins.admin_login',
-				'users.user_id',
-				'users.user_name',
-				'users.user_telegram_id',
-			]
-		)->join('users','users.user_id = admins.admin_user_id','LEFT')
-		->whereNotIn('admin_id',[$currentAdminID])
-		->find();
-	}
+	
 	
 	/**
 	 * CRUD BLOCK CREATE
@@ -127,7 +111,7 @@ class AdminModel extends Model
 	
 	/**
 	 * @param  int $adminID ID Админа
-	 * @return int Сброс пароля администратора по его ID Возвращает временный пароль
+	 * @return int Сброс пароля администратора по его ID Возвращает временный пароль !(Пока не используется)!
 	 */
 	public function dropPassword(int $adminID):int
 	{
@@ -136,16 +120,4 @@ class AdminModel extends Model
 		return $temporallyPassword;
 	}
 	
-	/**
-	 * CRUD BLOCK DELETE
-	 */
-	
-	/**
-	 * @param int $adminID ID Админа
-	 * @return bool Удаляет админа по ID
-	 */
-	public function deleteAdmin(int $adminID):bool
-	{
-		return $this->delete($adminID);
-	}
 }

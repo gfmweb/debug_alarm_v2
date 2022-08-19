@@ -82,7 +82,6 @@ class ProjectModel extends Model
 					'projects.project_name',
 					'projects.project_secret',
 				])
-			
 			->find($projectID);
 	}
 	

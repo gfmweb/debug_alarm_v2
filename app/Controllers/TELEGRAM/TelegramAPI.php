@@ -4,7 +4,9 @@ namespace App\Controllers\TELEGRAM;
 
 use App\Controllers\BaseController;
 
-
+/**
+ * Класс транспорта отправки запросов к телеграм
+ */
 class TelegramAPI extends BaseController
 {
 	/**
@@ -20,8 +22,7 @@ class TelegramAPI extends BaseController
 		$result = $curl->request('POST', $options['baseURI'], ['form_params' => ['chat_id' => $recipient_telegram_id, 'text' => $text, 'parse_mode' => 'HTML', 'disable_web_page_preview' => true, 'disable_notification' => $disable_notification, 'protect_content' => true]]);
 		$response = $result->getBody();
 		$data_response = json_decode($response, true);
-		return (isset($data_response['ok']) && $data_response['ok'] == 1) ? ['status' => 'ok', 'message_id' => $data_response['result']['message_id']] : ['status' => 'fail'];
-		
+		return (isset($data_response['ok']) && $data_response['ok'] == 1) ? ['status' => 'ok', 'message_id' => $data_response['result']['message_id']] : ['status' => 'fail','message_id'=>0];
 	}
 	
 	/**

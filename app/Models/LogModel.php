@@ -53,14 +53,6 @@ class LogModel extends Model
 		return $this->select(['logs.log_id', 'logs.log_structured_data','logs.log_title','logs.log_part','logs.log_status','logs.created_at','projects.project_name'])->join('projects','projects.project_id = logs.log_project_id','LEFT')->where('logs.log_id',$logID)->first();
 	}
 	
-	/**
-	 * @param int $logID ID интересующего ЛОГА
-	 * @return array Данные как есть от проекта
-	 */
-	public function getLogRowDataByID(int $logID):array
-	{
-		return $this->select(['logs.log_row_data','logs,created_at'])->where('log_id',$logID)->first();
-	}
 	
 	/**
 	 * @param array $query Массив запроса
@@ -155,24 +147,62 @@ class LogModel extends Model
 	/**
 	 * CRUD BLOCK CREATE
 	 */
-	public function createLog(int $projectID, string $row_data, array $structured_data):bool
+	
+	
+	/**
+	 * @param int $projectID
+	 * @param array $structured_data
+	 * @param string $log_title
+	 * @param string $log_part
+	 * @param string $log_status
+	 * @return bool Одиночная вставка лога в БД
+	 */
+	public function createLog(int $projectID,  array $structured_data, string $log_title, string $log_part, string $log_status):bool
 	{
-		return $this->insert(['log_project_id'=>$projectID,'log_row_data'=>$row_data,'log_structured_data'=>json_encode($structured_data,256)]);
+		return true;
 	}
 	
-	public function Test($variable)
+	
+	/**
+	 * @return bool Инициализация редис ключей после заполнения БД
+	 * @throws \RedisException
+	 */
+	public function afterSeed():bool
 	{
-		//logs.log_id, logs.log_structured_data, logs.created_at, projects.project_name
-		//logs.log_project_id = rojects.project_id
-		
-		$result = $this->select(['logs.log_id', 'logs.log_structured_data', 'logs.created_at', 'projects.project_name'])
-			->join('projects','logs.log_project_id = projects.project_id')
-			->whereIn('logs.log_project_id',[1])
-			->where('logs.created_at BETWEEN "2022-08-17 11:29:12" AND "2022-08-17 11:29:16"')
-			->like('logs.log_structured_data','+79786867888','both')
+		$Rediska = new \Redis();
+		$Rediska->connect('127.0.0.1',6379);
+		$data = $this->select(
+			[
+				'logs.log_id',
+				'logs.log_structured_data',
+				'logs.log_title',
+				'logs.log_part',
+				'logs.log_status',
+				'logs.created_at',
+				'projects.project_name'
+			])
+			->join('projects','logs.log_project_id = projects.project_id','LEFT')
 			->limit(100)
 			->orderBy('logs.log_id','DESC')
 			->find();
-		return $result;
+		for($i=0,$imax=count($data); $i < $imax; $i++){
+			$data[$i]['log_structured_data'] = json_decode($data[$i]['log_structured_data'],true);
+		}
+		foreach ($data as $record){
+			$Rediska->rPush('list_logs',json_encode(
+				[   'log_id'=>$record['log_id'],
+					'project_name'=>$record['project_name'],
+					'title'=>$record['log_title'],
+					'time'=>$record['created_at'],
+					'part'=>$record['log_part'],
+					'status'=>$record['log_status']
+				],256));
+		}
+		$counter = $this->select('log_id')->limit(1)->orderBy('log_id','DESC')->find();
+		$Rediska->set('total_log_rows',$counter[0]['log_id']);
+		$Rediska->set('global_service_status','stop');
+		$Rediska->set('service_max_requests',0);
+		$Rediska->close();
+		return true;
 	}
 }

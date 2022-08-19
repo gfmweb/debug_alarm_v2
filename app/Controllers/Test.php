@@ -18,9 +18,8 @@ class Test extends BaseController
     public function index()
     {
 		
-	  $Redis =  Redis::getInstance();
-	  $Redis->rPush('real_time_update',json_encode(['log_id'=>6092,'project_name'=>'ADD_ME','title'=>'add_now_it_in_head - ','time'=>'2022-08-19 01:52:32','part'=>'body','status'=>'critical']));
-	    $Redis->rPush('real_time_update',json_encode(['log_id'=>6093,'project_name'=>'ADD_ME2','title'=>'add_now_it_in_head2 - ','time'=>'2022-08-19 01:52:35','part'=>'body','status'=>'critical']));
+	  $LogsModel = model(LogModel::class);
+	  echo '<pre>'; print_r($LogsModel->select('log_id')->orderBy('log_id','DESC')->first()); echo '</pre>';
     }
 	
 	public function telega()

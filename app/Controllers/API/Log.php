@@ -72,6 +72,7 @@ class Log extends BaseController
 		$request = $this->request->getUri()->getSegments();
 		if(!isset($request[3])) return $this->respond('Bad request. No SecretKey detected',400);
 		$data = self::ValidateRequest($this->request->getVar('log'),$request[3]);
+	
 		if(!$data['valid']) return $this->respond('Bad request OR Auth error'.PHP_EOL.$data['errors'],400);
 	 
 		

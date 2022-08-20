@@ -313,7 +313,13 @@ class Redis extends BaseController
 		}
 		$result['id'] = $Data['log_record']['log_id'];
 		$result['block_id'] = time().mt_rand(0,9999999);
-		self::$Rediska->lpush('timer_check',json_encode(['project_id'=>$Data['log_record']['project_id'],'block_id'=>$result['block_id'],'ttl'=>$Data['log_record']['timer_check'],'ttl_etalon'=>$Data['log_record']['timer_check']]));
+		self::$Rediska->lpush('timer_check',json_encode(
+			['project_id'=>$Data['log_record']['project_id'],
+			'block_id'=>$result['block_id'],
+			'ttl'=>$Data['log_record']['timer'],
+			'ttl_etalon'=>$Data['log_record']['timer'],
+			'recipients'=>$Data['log_record']['recipients']
+			]));
 		$result['errors']='';
 		return 	$result;
 	}

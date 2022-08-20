@@ -249,10 +249,11 @@ class Redis extends BaseController
 				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
 			}
 		}
-		elseif ($Data['log_record']['alert_mode']=='alarm'){
+		elseif ($Data['log_record']['alert_mode']=='alarm' || $Data['log_record']['status'] == 'critical'){
+			$text = ($Data['log_record']['status'] == 'normal')?'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>':'Критическая ситуация на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>';
 			foreach ($Data['log_record']['recipients'] as $user)
 			{
-				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+				TelegramAPI::sendMessage($user['user_telegram_id'],$text,false );
 			}
 		}
 		
@@ -303,14 +304,15 @@ class Redis extends BaseController
 				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие начала выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
 			}
 		}
-		elseif ($Data['log_record']['alert_mode']=='alarm'){
+		elseif ($Data['log_record']['alert_mode']=='alarm' || $Data['log_record']['status'] == 'critical'){
+			$text = ($Data['log_record']['status'] == 'normal')?'Событие начала выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>':'Критическая ситуация на сервисе при начале работы <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>';
 			foreach ($Data['log_record']['recipients'] as $user)
 			{
-				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие начала выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+				TelegramAPI::sendMessage($user['user_telegram_id'],$text,false );
 			}
 		}
 		$result['id'] = $Data['log_record']['log_id'];
-		$result['block_id'] = time();
+		$result['block_id'] = time().mt_rand(0,9999999);
 		self::$Rediska->lpush('timer_check',json_encode(['project_id'=>$Data['log_record']['project_id'],'block_id'=>$result['block_id'],'ttl'=>$Data['log_record']['timer_check'],'ttl_etalon'=>$Data['log_record']['timer_check']]));
 		$result['errors']='';
 		return 	$result;
@@ -373,10 +375,11 @@ class Redis extends BaseController
 					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие продолжение выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
 				}
 			}
-			elseif ($Data['log_record']['alert_mode']=='alarm'){
+			elseif ($Data['log_record']['alert_mode']=='alarm' || $Data['log_record']['status'] == 'critical'){
+				$text = ($Data['log_record']['status'] == 'normal')?'Событие продолжения выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>':'Критическая ситуация на сервисе при продолжении работы <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>';
 				foreach ($Data['log_record']['recipients'] as $user)
 				{
-					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие продолжение выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+					TelegramAPI::sendMessage($user['user_telegram_id'],$text,false );
 				}
 			}
 			$result['block_id'] = $current_timer['block_id'];
@@ -446,10 +449,11 @@ class Redis extends BaseController
 					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие окончания выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
 				}
 			}
-			elseif ($Data['log_record']['alert_mode']=='alarm'){
+			elseif ($Data['log_record']['alert_mode']=='alarm' || $Data['log_record']['status'] == 'critical'){
+				$text = ($Data['log_record']['status'] == 'normal')?'Событие окончания выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>':'Критическая ситуация на сервисе при окончании работы <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>';
 				foreach ($Data['log_record']['recipients'] as $user)
 				{
-					TelegramAPI::sendMessage($user['user_telegram_id'],'Событие окончания выполнения на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',false );
+					TelegramAPI::sendMessage($user['user_telegram_id'],$text,false );
 				}
 			}
 			$result['block_id'] = $current_timer['block_id'];

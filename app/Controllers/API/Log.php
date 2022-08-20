@@ -67,7 +67,9 @@ class Log extends BaseController
 	}
 	
 	
-	
+	/**
+	 * @return \CodeIgniter\HTTP\Response Ответ стороннему сервису
+	 */
     public function CreateLog()
     {
         if(!self::GetServiceStatus()) return $this->respond('503 Service Unavailable',503);
@@ -93,6 +95,9 @@ class Log extends BaseController
 		return ($result['id']!==0)? $this->respond(['store'=>'ok','result'=>$result],200):$this->respond(['store'=>false,'errors'=>$result['errors']],400);
     }
 	
+	/**
+	 * @return \CodeIgniter\HTTP\Response|string Инструкция по оформлению запроса к сервису
+	 */
 	public function getInstruction()
 	{
 		if(!self::GetServiceStatus()) return $this->respond('503 Service Unavailable',503);

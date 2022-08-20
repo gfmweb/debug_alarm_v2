@@ -75,6 +75,11 @@ class Redis extends BaseController
 		return true;
 	}
 	
+	/**
+	 * @param int $userID Пользовательский ID
+	 * @param int $TelegramID Пользовательский  telegramID
+	 * @return bool Обновит пользователя добавив к нему его телеграм
+	 */
 	public static function UserUpdate(int $userID, int $TelegramID)
 	{
 		self::initial();
@@ -90,6 +95,10 @@ class Redis extends BaseController
 		return true;
 	}
 	
+	/**
+	 * @param array $userLogin Пользовательский логин
+	 * @return array Вернёт пользователя по его логину
+	 */
 	public static function UserGetByLogin(array $userLogin):array
 	{
 		self::initial();
@@ -106,6 +115,9 @@ class Redis extends BaseController
 		return $results;
 	}
 	
+	/**
+	 * @return array Вернёт всех пользователей
+	 */
 	public static function UsersGetAll():array
 	{
 		self::initial();
@@ -116,6 +128,10 @@ class Redis extends BaseController
 		return $users;
 	}
 	
+	/**
+	 * @param int $userID Пользовательский ИД
+	 * @return bool Уничтожит запись о пользователе
+	 */
 	public static function UserDrop(int $userID):bool
 	{
 		self::initial();
@@ -146,6 +162,12 @@ class Redis extends BaseController
 		return true;
 	}
 	
+	/**
+	 * @param int $ProjectID ИД проекта
+	 * @param string $ProjectName Имя проекта
+	 * @param string $ProjectSecret Секретный ключ проекта
+	 * @return bool Обновит проект
+	 */
 	public static function ProjectUpdate(int $ProjectID, string $ProjectName, string $ProjectSecret):bool
 	{
 		self::initial();
@@ -162,6 +184,10 @@ class Redis extends BaseController
 		return false;
 	}
 	
+	/**
+	 * @param int $ProjectID ИД проекта
+	 * @return array Вернёт проект по его ИД
+	 */
 	public static function ProjectGet(int $ProjectID):array
 	{
 		self::initial();
@@ -175,6 +201,10 @@ class Redis extends BaseController
 		return [];
 	}
 	
+	/**
+	 * @param string $ProjectSecret Секретный ключ проекта
+	 * @return array Вернет проект по его секретному ключу
+	 */
 	public static function ProjectGetBySecret(string $ProjectSecret):array
 	{
 		self::initial();
@@ -188,6 +218,10 @@ class Redis extends BaseController
 		return [];
 	}
 	
+	/**
+	 * @param int $ProjectID ИД проекта
+	 * @return bool Уничтожит проект по его ИД
+	 */
 	public static function ProjectDrop(int $ProjectID):bool
 	{
 		self::initial();
@@ -205,6 +239,11 @@ class Redis extends BaseController
 	
 	/**
 	 * Действия с логами
+	 */
+	
+	/**
+	 * @param array $Data Подготовленные данные для одиночной записи из контроллера API/Log
+	 * @return array Поместит запись в списки Редис для отложенной записи + обновления онлайн пользователей + в 100 кэшированных записей. Вернёт ID лога (то которое у него будет в БД)
 	 */
 	public static function SingleLog(array $Data):array
 	{
@@ -260,6 +299,10 @@ class Redis extends BaseController
 		return 	$result;
 	}
 	
+	/**
+	 * @param array $Data Подготовленные данные начала цепочки записей из контроллера API/Log
+	 * @return array Поместит запись в списки Редис для отложенной записи + обновления онлайн пользователей + в 100 кэшированных записей. Вернёт ID лога (то которое у него будет в БД) + установит таймер определения живучести
+	 */
 	public static function BlockStartLog(array $Data):array
 	{
 		self::initial();
@@ -324,6 +367,10 @@ class Redis extends BaseController
 		return 	$result;
 	}
 	
+	/**
+	 * @param array $Data Подготовленные данные продолжения цепочки записей из контроллера API/Log
+	 * @return array Поместит запись в списки Редис для отложенной записи + обновления онлайн пользователей + в 100 кэшированных записей. Вернёт ID лога (то которое у него будет в БД) + обновит таймер определения живучести
+	 */
 	public static function BlockBodyLog(array $Data):array
 	{
 		self::initial();
@@ -396,6 +443,10 @@ class Redis extends BaseController
 		return 	$result;
 	}
 	
+	/**
+	 * @param array $Data Подготовленные данные окончания цепочки записей из контроллера API/Log
+	 * @return array Поместит запись в списки Редис для отложенной записи + обновления онлайн пользователей + в 100 кэшированных записей. Вернёт ID лога (то которое у него будет в БД) + удалит таймер определения живучести
+	 */
 	public static function BlockFinishLog(array  $Data):array
 	{
 		self::initial();

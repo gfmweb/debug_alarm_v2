@@ -7,6 +7,9 @@ use App\Controllers\TELEGRAM\TelegramAPI;
 use App\Models\LogModel;
 use CodeIgniter\API\ResponseTrait;
 
+/**
+ *  Класс обрабатывающий команды с WebSocket демона
+ */
 class Socket extends BaseController
 {
 	use ResponseTrait;

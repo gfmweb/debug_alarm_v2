@@ -103,7 +103,6 @@ class User extends BaseController
 		foreach ($recipient as $user)
 		{
 			$messageID = TelegramAPI::sendMessage($user,$text,false);
-			//todo inline button accept action! Payload telegram && recall to sender
 		}
 		return $this->respond('ok',200);
 	}

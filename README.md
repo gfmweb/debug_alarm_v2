@@ -1,7 +1,8 @@
 # DEBUG_ALARM_v2_BOT
 
 ## PHP v 7.4  
-## Vue.js  + axios 
+## WebSockets by WorkerMan
+## Vue.js  + axios
 ## Bootstrap 5
 ## Redis
 ## MySQL
@@ -21,7 +22,7 @@
 ## Настройки
 
 ### .BotFather
-Установить адресс webHooks для бота (прим. https://debug.gfmweb.ru/t_hooks)
+Установить адрес webHooks для бота (прим. https://debug.gfmweb.ru/t_hooks)
 
 Установить кнопку открытия приложения (/setmenubutton) Для бота и задать адрес WebAPP (прим. https://debug.gfmweb.ru/telegram)
 
@@ -29,7 +30,6 @@
 
 str 22 app.baseURL = 'http://debug.gfmweb.ru'
 
-str 27 app.sessionDriver = 'CodeIgniter\Session\Handlers\RedisHandler'
 
 str 41-46 DB
 
@@ -57,7 +57,7 @@ str 17  defined('TELEGRAM') || define('TELEGRAM', '5368469368:AAFJl8klvgmm66JDfe
 
 2. Выполнить php spark migrate
 
-3. Выполнить php spark db:seed Admin 
+3. Выполнить php spark db:seed Admin  
 
 
 ### Первый вход администратора
@@ -74,17 +74,21 @@ str 17  defined('TELEGRAM') || define('TELEGRAM', '5368469368:AAFJl8klvgmm66JDfe
 ## Админка и её фунции (ТОЛЬКО WEB Интерфейс)
 1. CRUD пользователей и генерация ссылки для регистрации его через бот (для того чтобы не спрашивать его user_id 
    телеграма)
-
 2. CRUD операции с проектами
-
 3. Смена пароля Администратора
-
-4. CRUD операции с Админами
-
-5. Остановка / Запуск сервиса 
-
+4. Остановка / Запуск сервиса 
+5. Смена WebHook адреса
+6. Реинициализация ключей Redis 
 
 ## Интерфейс пользователя (WEB)
-
+1. Просмотр логов в режиме реального времени
+2. Фильтрации списка
+3. Чтение лога
+4. Оповещение других пользователей о конкретном логе
+5. Смена пароля
 
 ## Интерфейс пользователя (TELEGRAM_BOT)
+1. Просмотр логов в режиме реального времени
+2. Фильтрации списка
+3. Чтение лога
+4. Оповещение других пользователей о конкретном логе

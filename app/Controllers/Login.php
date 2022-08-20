@@ -28,16 +28,16 @@ class Login extends BaseController
 		$mode = $this->request->getVar('mode');
 		$form = [
 			'method'=>'POST',
-			'submit_btn_txt'=>'Submit',
+			'submit_btn_txt'=>'Далее',
 			'form_header'=>($mode == 'admin')?'Вход в админку':'Просмотр логов',
 			'action'=>($mode == 'admin')? ['/login/admin','/login/check']:['/login/user','/login/check'],
 			'form_fields'=>[
 				[
-					['label'=>'Login','type'=>'text','name'=>'login'],
-					['label'=>'Password','type'=>'password','name'=>'password'],
+					['label'=>'Логин','type'=>'text','name'=>'login'],
+					['label'=>'Пароль','type'=>'password','name'=>'password'],
 				],
 				[
-					['label'=>'Check CODE','type'=>'number','name'=>'code']
+					['label'=>'Проверочный код','type'=>'number','name'=>'code']
 					
 				]
 			]

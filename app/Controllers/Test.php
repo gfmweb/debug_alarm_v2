@@ -27,14 +27,15 @@ class Test extends BaseController
 			    [
 			        'log' => json_encode(
 						[
-							'title'=>'block test body finish',
+							'title'=>'record finish',
 							'type'=>'block',
-							'block_id'=>16609762594785946,
-							'part'=>'finish',
-							'data'=>['Body block'],
+							'block_id'=>16609900385901173,
+							'part'=>'start',
+							'data'=>['Alert_timer_test'],
 							'recipients'=>['admin'],
 							'alert_mode'=>'hide',
-							'status'=>'normal'
+							'status'=>'normal',
+							'timer_check'=>10
 						],256),
 		        ]
 		    ]);
@@ -46,12 +47,16 @@ class Test extends BaseController
 	
 	public function telega()
 	{
-		//$Client = Redis::ProjectGetBySecret('IcjxBCUp4zLv1e9V1660824325');
-		//echo '<pre>'; print_r($Client); echo '</pre>';
-		$row = '{ "valid": true, "errors": "", "log_record": { "title": "block test start", "type": "block", "block_id": null, "part": "start", "recipients": [ { "user_id": "1", "user_telegram_id": "822173207", "user_name": "admin", "user_login": "admin" } ], "alert_mode": "silent", "status": "normal", "log_structured_data": [ "Start of block" ], "project_name": "СМС-Конвеер", "project_id": "1", "timer": 60 } }';
-		$data = json_decode($row,true);
-		echo'<pre>'; print_r($data); echo'</pre>';
-		echo '<pre>'; print_r(Redis::BlockStartLog($data)); echo '</pre>';
+	 $row = '{"log_id":"2915","project_id":"1","project_name":"\u0421\u041c\u0421-\u041a\u043e\u043d\u0432\u0435\u0435\u0440","block_id":"1660993008673140","ttl":0,"ttl_etalon":10,"recipients":[{"user_id":"1","user_telegram_id":"822173207","user_name":"admin","user_login":"admin"}]}';
+	 $data = json_decode($row,true);
+	 
+	 echo'<pre>'; print_r($data); echo'</pre>';
+		$text = 'За отведенное время <b>'.$data['ttl_etalon'].'</b> секунд.'.PHP_EOL.'
+			Сервис  <b>'.$data['project_name'].'</b> больше не прислал ни одного лога! ВОЗМОЖНО <i>'.$data['project_name'].'</i>  <b> УПАЛ!</b>'.PHP_EOL.'
+			Начало цепочки действий ID= '.$data['log_id'];
+		foreach ($data['recipients'] as $user){
+			TelegramAPI::sendMessage($user['user_telegram_id'],$text,false);
+		}
 		
 	}
 	

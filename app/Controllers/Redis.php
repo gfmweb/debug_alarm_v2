@@ -35,9 +35,10 @@ class Redis extends BaseController
 	public static function reInit()
 	{
 		self::initial();
+		$Logs = model(LogModel::class);
 		if(!self::$Rediska->exists('service_max_requests')) self::$Rediska->set('service_max_requests',0);
 		if(!self::$Rediska->exists('total_log_rows')) {
-			$Logs = model(LogModel::class);
+			
 			$lastID = $Logs->select('log_id')->orderBy('log_id','DESC')->first();
 			$lastID = (isset($lastID['log_id']))?$lastID['log_id']:0;
 			self::$Rediska->set('total_log_rows',$lastID);
@@ -155,7 +156,7 @@ class Redis extends BaseController
 				$project['project_name'] = $ProjectName;
 				$project['project_secret'] = $ProjectSecret;
 				self::$Rediska->lset('log_service_projects',$i,json_encode($project,256));
-				return true;
+			return true;
 			}
 		}
 		return false;
@@ -208,44 +209,40 @@ class Redis extends BaseController
 	public static function SingleLog(array $Data):array
 	{
 		self::initial();
-		self::$Rediska->incr('total_log_rows');
-		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
+		$Data['log_record']['log_id'] = self::$Rediska->incr('total_log_rows');
 		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_id'=>$Data['log_record']['project_id'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				'log_id'                =>  $Data['log_record']['log_id'],
+				'project_id'            =>  $Data['log_record']['project_id'],
+				'title'                 =>  $Data['log_record']['title'],
+				'part'                  =>  $Data['log_record']['part'],
+				'status'                =>  $Data['log_record']['status'],
+				'time'                  =>  date('Y-m-d H:i:s'),
+				'log_structured_data'   =>  json_encode($Data['log_record']['log_structured_data'],256)
 			]));
 		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
 		
 		if($Data['log_record']['alert_mode']=='silent'){
 			foreach ($Data['log_record']['recipients'] as $user)
 			{
-				
 				TelegramAPI::sendMessage($user['user_telegram_id'],'Событие на сервисе <b>'.$Data['log_record']['project_name'].'</b>'.PHP_EOL.'id = <b>'.$Data['log_record']['log_id'].'</b>',true );
 			}
 		}
@@ -270,31 +267,31 @@ class Redis extends BaseController
 		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
 		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_id'=>$Data['log_record']['project_id'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				'log_id'                =>  $Data['log_record']['log_id'],
+				'project_id'            =>  $Data['log_record']['project_id'],
+				'title'                 =>  $Data['log_record']['title'],
+				'part'                  =>  $Data['log_record']['part'],
+				'status'                =>  $Data['log_record']['status'],
+				'time'                  =>  date('Y-m-d H:i:s'),
+				'log_structured_data'   =>  json_encode($Data['log_record']['log_structured_data'],256)
 			]));
 		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
+				'log_id'            =>  $Data['log_record']['log_id'],
+				'project_name'      =>  $Data['log_record']['project_name'],
+				'title'             =>  $Data['log_record']['title'],
+				'part'              =>  $Data['log_record']['part'],
+				'status'            =>  $Data['log_record']['status'],
+				'time'              =>  date('Y-m-d H:i:s'),
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
 		
@@ -314,11 +311,14 @@ class Redis extends BaseController
 		$result['id'] = $Data['log_record']['log_id'];
 		$result['block_id'] = time().mt_rand(0,9999999);
 		self::$Rediska->lpush('timer_check',json_encode(
-			['project_id'=>$Data['log_record']['project_id'],
-			'block_id'=>$result['block_id'],
-			'ttl'=>$Data['log_record']['timer'],
-			'ttl_etalon'=>$Data['log_record']['timer'],
-			'recipients'=>$Data['log_record']['recipients']
+			[
+			'log_id'        =>  $Data['log_record']['log_id'],
+			'project_id'    =>  $Data['log_record']['project_id'],
+			'project_name'  =>  $Data['log_record']['project_name'],
+			'block_id'      =>  $result['block_id'],
+			'ttl'           =>  $Data['log_record']['timer'],
+			'ttl_etalon'    =>  $Data['log_record']['timer'],
+			'recipients'    =>  $Data['log_record']['recipients']
 			]));
 		$result['errors']='';
 		return 	$result;
@@ -331,33 +331,31 @@ class Redis extends BaseController
 		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
 		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-			
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_id'=>$Data['log_record']['project_id'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				'log_id'                =>  $Data['log_record']['log_id'],
+				'project_id'            =>  $Data['log_record']['project_id'],
+				'title'                 =>  $Data['log_record']['title'],
+				'part'                  =>  $Data['log_record']['part'],
+				'status'                =>  $Data['log_record']['status'],
+				'time'                  =>  date('Y-m-d H:i:s'),
+				'log_structured_data'   =>  json_encode($Data['log_record']['log_structured_data'],256)
 			]));
 		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-			
+				'log_id'            =>  $Data['log_record']['log_id'],
+				'project_name'      =>  $Data['log_record']['project_name'],
+				'title'             =>  $Data['log_record']['title'],
+				'part'              =>  $Data['log_record']['part'],
+				'status'            =>  $Data['log_record']['status'],
+				'time'              =>  date('Y-m-d H:i:s'),
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
 		
@@ -405,33 +403,31 @@ class Redis extends BaseController
 		$Data['log_record']['log_id']=self::$Rediska->get('total_log_rows');
 		self::$Rediska->lPush('real_time_update',json_encode( // Отправили в кумулитивные обновления
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-			
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		self::$Rediska->rPush('logs_turn_to_DB',json_encode( // Положили в очередь на запись
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_id'=>$Data['log_record']['project_id'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-				'log_structured_data'=>json_encode($Data['log_record']['log_structured_data'],256)
+				'log_id'                =>  $Data['log_record']['log_id'],
+				'project_id'            =>  $Data['log_record']['project_id'],
+				'title'                 =>  $Data['log_record']['title'],
+				'part'                  =>  $Data['log_record']['part'],
+				'status'                =>  $Data['log_record']['status'],
+				'time'                  =>  date('Y-m-d H:i:s'),
+				'log_structured_data'   =>  json_encode($Data['log_record']['log_structured_data'],256)
 			]));
 		self::$Rediska->lPush('list_logs',json_encode( // Добавили в общий лист Real_time
 			[
-				'log_id'=>$Data['log_record']['log_id'],
-				'project_name'=>$Data['log_record']['project_name'],
-				'title'=>$Data['log_record']['title'],
-				'part'=>$Data['log_record']['part'],
-				'status'=>$Data['log_record']['status'],
-				'time'=>date('Y-m-d H:i:s'),
-			
+				'log_id'        =>  $Data['log_record']['log_id'],
+				'project_name'  =>  $Data['log_record']['project_name'],
+				'title'         =>  $Data['log_record']['title'],
+				'part'          =>  $Data['log_record']['part'],
+				'status'        =>  $Data['log_record']['status'],
+				'time'          =>  date('Y-m-d H:i:s'),
 			]));
 		if(self::$Rediska->llen('list_logs')>100){self::$Rediska->rpop('list_logs');}
 		

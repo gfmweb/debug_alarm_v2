@@ -49,13 +49,15 @@ class Log extends BaseController
 		if(!in_array($data['type'],['single','block'])) $data['type']='single';
 		
 		if(!in_array($data['part'],['body','start','finish'])) $data['part']='body';
-		
+		if($data['type'] == 'single') $data['part'] = 'body';
 		if(!isset($data['title']) && $data['part']=='body' && $data['type']=='single') $data['title'] = 'Одиночная запись лога с сервиса '.$Client['project_name'];
 		
 		if(!isset($data['title']) && $data['part']=='start' && $data['type']=='block') $data['title'] = 'Начальная запись лога с сервиса '.$Client['project_name'];
 		if(!isset($data['title']) && $data['part']=='body' && $data['type']=='block') $data['title'] = 'Продолжение запись лога с сервиса '.$Client['project_name'];
 		if(!isset($data['title']) && $data['part']=='finish' && $data['type']=='block') $data['title'] = 'Конечная запись лога с сервиса '.$Client['project_name'];
-		if($data['type']=='block'&&(!isset($data['timer_check'])||(!is_int($data['timer_check'])))) $data['timer'] = 60;
+		if(	($data['type']=='block'&& !isset($data['timer_check']) && $data['part'] =='start' )	||	(!is_int($data['timer_check']) && $data['type']=='block' && $data['part'] =='start' )) $data['timer'] = 60;
+		else $data['timer'] = $data['timer_check'];
+		
 		if($data['type']=='block' && in_array($data['part'],['body','finish']) && !isset($data['block_id'])) return ['valid'=>false,'errors'=>'missing block_id','log_record'=>[]];
 		
 		if(!isset($data['status'])) $data['status']='normal';
@@ -72,7 +74,7 @@ class Log extends BaseController
 		$request = $this->request->getUri()->getSegments();
 		if(!isset($request[3])) return $this->respond('Bad request. No SecretKey detected',400);
 		$data = self::ValidateRequest($this->request->getVar('log'),$request[3]);
-	
+		
 		if(!$data['valid']) return $this->respond('Bad request OR Auth error'.PHP_EOL.$data['errors'],400);
 	 
 		
@@ -88,9 +90,7 @@ class Log extends BaseController
 		else{
 			$result = Redis::SingleLog($data);
 		}
-	 
-		return ($result['id']!==0)? $this->respond(['store'=>'ok','result'=>$result,'data'=>$data],200):$this->respond(['store'=>false,'errors'=>$result['errors'],'data'=>$data],400);
-		
+		return ($result['id']!==0)? $this->respond(['store'=>'ok','result'=>$result],200):$this->respond(['store'=>false,'errors'=>$result['errors']],400);
     }
 	
 	public function getInstruction()

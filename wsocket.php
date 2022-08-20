@@ -4,6 +4,7 @@
 	use Workerman\Worker;
 	
 	require_once __DIR__ . '/vendor/autoload.php';
+	
 	$connections = []; // сюда будем складывать все подключения
 // SSL context.
 	$context = array(
@@ -13,7 +14,30 @@
 			'verify_peer' => false,
 		)
 	);
-
+	function transport(string $action, string $data){
+		$secret = password_hash('Nacta the best!',PASSWORD_DEFAULT);
+		$url = 'https://debug.gfmweb.ru/Socket';
+		$post_data = [ // поля нашего запроса
+			'secret' => $secret,
+			'action' => $action,
+			'data'   => $data
+		];
+		$post_data = http_build_query($post_data);
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_VERBOSE, 1);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_POST, true);
+		try {
+			$result = curl_exec($curl);
+			if(!$result){throw new Exception('Ошибка отправки.');}
+		}
+		catch (Exception $e){
+			echo PHP_EOL.$e->getMessage().PHP_EOL;
+			
+		}
+	}
 // Create a Websocket server with ssl context.
 	$worker = new Worker('websocket://0.0.0.0:27800', $context);
 
@@ -23,11 +47,32 @@
 	
 	$worker->onWorkerStart = function($worker) use (&$connections)
 	{
-		
-		$interval = 1; // пингуем каждую  секунду
-		Timer::add($interval, function() use(&$connections) {
+		$interval = 1; // Запускаемся каждую секунду
+		Timer::add($interval, function() use(&$connections)  {
+			
 			$Redis = new \Redis();
 			$Redis->connect('127.0.0.1',6379);
+			if(count($connections)==0 && $Redis->exists('real_time_update') ){
+				$Redis->del('real_time_update'); // Чистим кумулятивные обновновления если у нас нет активных пользователей
+			}
+			if($Redis->exists('timer_check')){ // Проверка Таймеров при выполнении записи Блоков
+				$timersCounter = $Redis->llen('timer_check');
+					for($tiCount = 0; $tiCount < $timersCounter; $tiCount++){
+						$timerRow = $Redis->lIndex('timer_check',$tiCount);
+						$timerData = json_decode($timerRow,true);
+						if($timerData['ttl'] > 0){$timerData['ttl']--; $Redis->lSet('timer_check',$tiCount,json_encode($timerData,256));}
+						else {transport('timer',$timerRow); $Redis->lRem('timer_check',$timerRow); };
+					}
+			}
+			if(time()  % 3 == 0 && $Redis->exists('logs_turn_to_DB')){ // Каждую 3 секунду
+				$recordsCounter = $Redis->lLen('logs_turn_to_DB');
+				$recordsBD = [];
+				for($recI = 0; $recI<$recordsCounter; $recI++){
+					$recordsBD[]=json_decode($Redis->lPop('logs_turn_to_DB'),true);
+				}
+				if(count($recordsBD)>0){transport('dump',json_encode($recordsBD));}
+			}
+			
 			foreach ($connections as $c) {
 				// Если ответ не пришел 3 раза, то удаляем соединение из списка
 				// и оповещаем всех участников об "отвалившемся" пользователе
@@ -83,6 +128,7 @@
 					}
 				}
 			}
+			
 			
 		});
 	};

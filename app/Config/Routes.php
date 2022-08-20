@@ -90,6 +90,7 @@ $routes->post('/loginByTelegram','TELEGRAM\TelegramView::login');
 
 $routes->post('/api/v1/log/(:any)','API\Log::createLog');
 $routes->get('/api/v1/log/(:any)','API\Log::getInstruction');
+$routes->post('/Socket','API\Socket::index');
 
 /*
  * --------------------------------------------------------------------

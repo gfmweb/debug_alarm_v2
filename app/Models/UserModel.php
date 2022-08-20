@@ -51,7 +51,7 @@ class UserModel extends Model
 	 */
 	public function getUserByLogin(string $login):array
 	{
-		return $this->select(['user_telegram_id','user_name','user_login','user_password'])->first();
+		return $this->select(['user_telegram_id','user_name','user_login','user_password'])->where('user_login',$login)->first();
 	}
 	
 	/**
@@ -86,7 +86,6 @@ class UserModel extends Model
 	public function preCreateUser(string $userName, string $login):int
 	{
 		$userID = $this->insert(['user_name'=>$userName,'user_login'=>$login,'user_password'=>'temp'],true);
-		Redis::AddUser(['user_name'=>$userName,'user_login'=>$login,'user_id'=>$userID]);
 		return $userID;
 	}
 	

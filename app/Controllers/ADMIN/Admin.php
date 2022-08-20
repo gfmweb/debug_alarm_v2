@@ -92,7 +92,7 @@ class Admin extends BaseController
 	{
 		$UserModel = model(UserModel::class);
 		$current_user = $this->session->get('user');
-		$row = $UserModel->getAnotherUsers($current_user);
+		$row = $UserModel->getAnotherUsers($current_user['user_id']);
 		for($t = 0,$tMax=count($row); $t<$tMax; $t++){
 			if(!is_numeric($row[$t]['user_telegram_id'])){
 				$row[$t]['user_telegram_id']='https://'.$_SERVER['SERVER_NAME'].'/finishRegister/'.$row[$t]['user_login'];}

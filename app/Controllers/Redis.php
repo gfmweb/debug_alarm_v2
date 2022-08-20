@@ -136,7 +136,7 @@ class Redis extends BaseController
 	{
 		self::initial();
 		$usersCount = self::$Rediska->llen('log_service_users');
-		for($i = 0,$iMax=$usersCount; $i<$iMax; $i++){
+		for($i = 0,$iMax=$usersCount-1; $i<$iMax; $i++){
 			$user = json_decode(self::$Rediska->lIndex('log_service_users',$i),true);
 			if($user['user_id'] == $userID){
 				$record = self::$Rediska->lIndex('log_service_users',$i);
@@ -226,7 +226,7 @@ class Redis extends BaseController
 	{
 		self::initial();
 		$projectsCount = self::$Rediska->llen('log_service_projects');
-		for ($i=0,$iMax=$projectsCount; $i < $iMax; $i++){
+		for ($i=0,$iMax=$projectsCount-1; $i < $iMax; $i++){
 			$project = json_decode(self::$Rediska->lIndex('log_service_projects',$i),true);
 			if($project['project_id'] == $ProjectID){
 				$record = self::$Rediska->lIndex('log_service_projects',$i);

@@ -39,6 +39,7 @@ $routes->get('/telegram_app','TELEGRAM\TelegramView::index'); // Роут тел
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Login::index');
+//$routes->get('/', 'Home::index');
 //$routes->get('/test','Test::index');
 //$routes->get('/test_telega','Test::telega');
 $routes->get('/admin','ADMIN\Admin::index');

@@ -87,7 +87,7 @@ class Login extends BaseController
 		$password = $this->request->getVar('password');
 		$Users = model(UserModel::class);
 		$user = $Users->getUserByLogin($login);
-		if(!isset($user['user_password'])||!password_verify($password,$user['user_password'])){return $this->respond(['errors'=>['Не верное имя пользователя или пароль'],'data'=>null],200);}
+		if(!isset($user['user_password'])||!password_verify($password,$user['user_password'])){return $this->respond(['errors'=>['Не верное имя пользователя или пароль'],'data'=>$user],200);}
 		else{
 			$Redis = Redis::getInstance();
 			$key = rand(1111,9999);

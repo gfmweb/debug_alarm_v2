@@ -105,6 +105,6 @@ class Log extends BaseController
 		if(!isset($request[3])) return $this->respond('Bad request. No SecretKey detected',400);
 		$Client = Redis::ProjectGetBySecret($request[3]);
 		if(!isset($Client['project_id'])) return $this->respond('Incorrect Key',403);
-		return view('user/instruction');
+		return view('user/instruction',['secret'=>$request[3]]);
 	}
 }

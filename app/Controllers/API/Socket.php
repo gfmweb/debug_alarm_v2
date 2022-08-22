@@ -23,9 +23,10 @@ class Socket extends BaseController
 		if($action == 'dump'){
 			for($i=0,$iMax=count($data); $i < $iMax; $i++){
 				unset($data[$i]['log_id']);
-				$data[$i]['log_title']=$data[$i]['title'];
-				$data[$i]['log_part']=$data[$i]['part'];
-				$data[$i]['log_status']=$data[$i]['status'];
+				$data[$i]['log_title']      =   $data[$i]['title'];
+				$data[$i]['log_part']       =   $data[$i]['part'];
+				$data[$i]['log_project_id'] =   $data[$i]['project_id'];
+				$data[$i]['log_status']     =   $data[$i]['status'];
 			}
 			$Logs = model(LogModel::class);
 			$Logs->insertBatch($data);

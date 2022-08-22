@@ -35,29 +35,25 @@ class Redis extends BaseController
 	public static function reInit()
 	{
 		self::initial();
+		self::$Rediska->flushDB();
 		$Logs = model(LogModel::class);
-		if(!self::$Rediska->exists('service_max_requests')) self::$Rediska->set('service_max_requests',0);
-		if(!self::$Rediska->exists('total_log_rows')) {
-			
-			$lastID = $Logs->select('log_id')->orderBy('log_id','DESC')->first();
-			$lastID = (isset($lastID['log_id']))?$lastID['log_id']:0;
-			self::$Rediska->set('total_log_rows',$lastID);
+		self::$Rediska->set('service_max_requests',0);
+		$lastID = $Logs->select('log_id')->orderBy('log_id','DESC')->first();
+		$lastID = (isset($lastID['log_id']))?$lastID['log_id']:0;
+		self::$Rediska->set('total_log_rows',$lastID);
+		
+		self::$Rediska->set('service_at_work','stop');
+		$Logs->afterSeed();
+		$Users = model(UserModel::class);
+		$users = $Users->getAnotherUsers(0);
+		foreach ($users as $user){
+			self::$Rediska->lpush('log_service_users',json_encode($user,256));
 		}
-		if(!self::$Rediska->exists('service_at_work')) self::$Rediska->set('service_at_work','stop');
-		if(!self::$Rediska->exists('list_logs')) $Logs->afterSeed();
-		if(!self::$Rediska->exists('log_service_users')){
-			$Users = model(UserModel::class);
-			$users = $Users->getAnotherUsers(0);
-			foreach ($users as $user){
-				self::$Rediska->lpush('log_service_users',json_encode($user,256));
-			}
-		}
-		if(!self::$Rediska->exists('log_service_projects')){
-			$Projects = model(ProjectModel::class);
+		$Projects = model(ProjectModel::class);
 			foreach ($Projects->getAll() as $item){
 				self::$Rediska->lpush('log_service_projects',json_encode($item,256));
 			}
-		}
+		
 	}
 	
 	/**

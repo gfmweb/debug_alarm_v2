@@ -50,7 +50,14 @@ class LogModel extends Model
 	 */
 	public function getLogByID(int $logID):array
 	{
-		return $this->select(['logs.log_id', 'logs.log_structured_data','logs.log_title','logs.log_part','logs.log_status','logs.created_at','projects.project_name'])->join('projects','projects.project_id = logs.log_project_id','LEFT')->where('logs.log_id',$logID)->first();
+		return $this->select(['logs.log_id',
+			'logs.log_structured_data',
+			'logs.log_title',
+			'logs.log_part',
+			'logs.log_status',
+			'logs.created_at',
+			'projects.project_name'])
+			->join('projects','projects.project_id = logs.log_project_id','LEFT')->where('logs.log_id',$logID)->first();
 	}
 	
 	
